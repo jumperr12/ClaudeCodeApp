@@ -1,25 +1,16 @@
-import {
-  MODEL_FAMILIES,
-  PERMISSION_MODES,
-  modelLabel,
-  supportsUltracode,
-  type PermissionMode
-} from '@shared/types'
+import { MODEL_FAMILIES, PERMISSION_MODES, modelLabel, type PermissionMode } from '@shared/types'
 import type { TabState } from '@/lib/chat'
 import Icon from './Icon'
 import InlineSelect from './InlineSelect'
-import EffortSlider from './EffortSlider'
+import EffortControl from './EffortControl'
 import UsageMeter from './UsageMeter'
 import { useSessionsStore } from '@/stores/sessions'
 
 export default function StatusBar({ tab }: { tab: TabState }): React.JSX.Element {
   const setPermissionMode = useSessionsStore((s) => s.setPermissionMode)
   const setModel = useSessionsStore((s) => s.setModel)
-  const setEffort = useSessionsStore((s) => s.setEffort)
-  const setUltracode = useSessionsStore((s) => s.setUltracode)
   const contextPct = Math.min(100, Math.round((tab.contextTokens / tab.contextLimit) * 100))
   const modeLabel = PERMISSION_MODES.find((m) => m.id === tab.permissionMode)?.label ?? tab.permissionMode
-  const ultracodeOk = supportsUltracode(tab.model)
 
   return (
     <div className="h-7 shrink-0 border-t border-border bg-bg flex items-center gap-4 px-3 text-[11px] text-muted select-none">
@@ -46,23 +37,8 @@ export default function StatusBar({ tab }: { tab: TabState }): React.JSX.Element
         ))}
       </InlineSelect>
 
-      {/* effort */}
-      <EffortSlider value={tab.effort} onChange={(e) => void setEffort(tab.id, e)} />
-
-      {/* ultracode — only for xhigh-capable models (Opus 4.7/4.8, Fable 5) */}
-      {ultracodeOk && (
-        <button
-          onClick={() => void setUltracode(tab.id, !tab.ultracode)}
-          className={`flex items-center gap-1 rounded-full px-2 py-0.5 border transition-colors ${
-            tab.ultracode
-              ? 'border-accent bg-accent/15 text-accent'
-              : 'border-border text-dim hover:text-fg hover:border-accent'
-          }`}
-          title="Ultracode — xhigh effort + dynamiczna orkiestracja workflow (tylko Opus 4.7/4.8, Fable 5). Per sesja."
-        >
-          <Icon name="sparkles" size={11} /> ultracode
-        </button>
-      )}
+      {/* effort + ultracode */}
+      <EffortControl tab={tab} />
 
       {/* permission mode */}
       <InlineSelect
