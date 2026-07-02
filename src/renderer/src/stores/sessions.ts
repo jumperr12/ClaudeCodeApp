@@ -7,7 +7,7 @@ import type {
   PermissionRequestPayload,
   SessionEventEnvelope
 } from '@shared/types'
-import { createTab, nextId, reduceSdkMessage, type TabState } from '@/lib/chat'
+import { createTab, nextId, reduceSdkMessage, type ChatItem, type TabState } from '@/lib/chat'
 import { useSettingsStore } from './settings'
 
 let tabCounter = 0
@@ -41,6 +41,22 @@ const MODE_CYCLE: PermissionMode[] = ['default', 'acceptEdits', 'plan', 'bypassP
 
 function patchTab(tabs: TabState[], tabId: string, fn: (t: TabState) => TabState): TabState[] {
   return tabs.map((t) => (t.id === tabId ? fn(t) : t))
+}
+
+/** Extract a human prompt from a transcript "user" message; undefined for tool-result msgs. */
+function extractUserText(message: Record<string, unknown>): string | undefined {
+  const content = message.content
+  if (typeof content === 'string') return content.trim() ? content : undefined
+  if (Array.isArray(content)) {
+    if (content.some((b) => (b as { type?: string })?.type === 'tool_result')) return undefined
+    const text = content
+      .filter((b) => (b as { type?: string })?.type === 'text')
+      .map((b) => (b as { text?: string }).text ?? '')
+      .join('')
+      .trim()
+    return text || undefined
+  }
+  return undefined
 }
 
 export const useSessionsStore = create<SessionsState>((set, get) => {
@@ -98,10 +114,43 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
           title,
           status: 'connecting',
           items: resume
-            ? [{ kind: 'info', id: nextId(), text: `Wznawianie sesji ${resume.slice(0, 8)}…`, tone: 'normal' }]
+            ? [{ kind: 'info', id: nextId(), text: `Wczytywanie historii sesji ${resume.slice(0, 8)}…`, tone: 'normal' }]
             : []
         }))
       }))
+
+      // Rebuild the prior conversation from the on-disk transcript so old messages
+      // are visible (resume alone only reloads context, not the UI).
+      if (resume) {
+        try {
+          const lines = await window.api.historyTranscript(cwd, resume)
+          let scratch = createTab(tabId, tab.model, tab.permissionMode, tab.effort)
+          for (const line of lines) {
+            // Human prompts (type "user" with text, not tool_result) aren't emitted as
+            // items by the reducer — in the live flow the store adds them on send. Add
+            // them here so the rebuilt transcript shows the user's own messages.
+            const humanText = line.type === 'user' ? extractUserText(line.message) : undefined
+            if (humanText !== undefined) {
+              scratch = { ...scratch, items: [...scratch.items, { kind: 'user', id: nextId(), text: humanText }] }
+            } else {
+              scratch = reduceSdkMessage(scratch, line as unknown as Record<string, unknown>)
+            }
+          }
+          const items: ChatItem[] = [
+            ...(lines.length >= 800
+              ? [{ kind: 'info' as const, id: nextId(), text: 'Pokazano najnowsze wiadomości tej sesji.', tone: 'normal' as const }]
+              : []),
+            ...scratch.items,
+            { kind: 'info' as const, id: nextId(), text: '— wznowiono; kontynuuj poniżej —', tone: 'normal' as const }
+          ]
+          set((st) => ({
+            tabs: patchTab(st.tabs, tabId, (t) => ({ ...t, items, contextTokens: scratch.contextTokens }))
+          }))
+        } catch {
+          // non-fatal — resume without the rendered history
+        }
+      }
+
       await window.api.createSession(tabId, {
         cwd,
         model: tab.model,

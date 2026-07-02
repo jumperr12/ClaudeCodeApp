@@ -74,6 +74,11 @@ const api: RendererApi = {
     ipcRenderer.invoke('history:search', cwd, q),
   historyListAll: (limit?: number): Promise<HistoryEntry[]> =>
     ipcRenderer.invoke('history:listAll', limit),
+  historyTranscript: (
+    cwd: string,
+    sessionId: string
+  ): Promise<{ type: string; message: Record<string, unknown> }[]> =>
+    ipcRenderer.invoke('history:transcript', cwd, sessionId),
 
   // settings
   getSettings: (): Promise<AppSettings> => ipcRenderer.invoke('settings:get'),

@@ -50,6 +50,10 @@ export interface RendererApi {
   historyList(cwd: string): Promise<HistoryEntry[]>
   historySearch(cwd: string, q: string): Promise<HistoryEntry[]>
   historyListAll(limit?: number): Promise<HistoryEntry[]>
+  historyTranscript(
+    cwd: string,
+    sessionId: string
+  ): Promise<{ type: string; message: Record<string, unknown> }[]>
 
   getSettings(): Promise<AppSettings>
   updateSettings(partial: Partial<AppSettings>): Promise<AppSettings>

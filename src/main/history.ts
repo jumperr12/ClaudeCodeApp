@@ -99,6 +99,43 @@ function parseMeta(filePath: string, size: number): SessionMeta {
   }
 }
 
+/**
+ * Read a session transcript as a list of `{type, message}` events (user/assistant only,
+ * subagent sidechains excluded) that the renderer folds through its normal SDK reducer to
+ * display the prior conversation. Returns at most `maxMessages`, keeping the most recent.
+ */
+export function readTranscript(
+  cwd: string,
+  sessionId: string,
+  maxMessages = 800
+): { type: string; message: Record<string, unknown> }[] {
+  const file = join(projectHistoryDir(cwd), `${sessionId}.jsonl`)
+  if (!existsSync(file)) return []
+  let content = ''
+  try {
+    content = readFileSync(file, 'utf8')
+  } catch {
+    return []
+  }
+  const out: { type: string; message: Record<string, unknown> }[] = []
+  for (const line of content.split('\n')) {
+    const t = line.trim()
+    if (!t) continue
+    let o: Record<string, unknown>
+    try {
+      o = JSON.parse(t)
+    } catch {
+      continue
+    }
+    if (o.isSidechain) continue
+    if (o.type !== 'user' && o.type !== 'assistant') continue
+    const m = o.message
+    if (!m || typeof m !== 'object') continue
+    out.push({ type: o.type, message: m as Record<string, unknown> })
+  }
+  return out.length > maxMessages ? out.slice(out.length - maxMessages) : out
+}
+
 /** All sessions across every project, newest first, enriched with model/tokens/cost. */
 export function listAllSessions(limit = 100): HistoryEntry[] {
   const root = join(homedir(), '.claude', 'projects')
