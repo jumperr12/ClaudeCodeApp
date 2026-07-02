@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { CostRecord } from '@shared/types'
 import Modal from '../Modal'
+import Icon from '../Icon'
 import { useUiStore } from '@/stores/ui'
 
 export default function CostDashboard(): React.JSX.Element {
@@ -23,7 +24,7 @@ export default function CostDashboard(): React.JSX.Element {
   const totalOut = (records ?? []).reduce((acc, r) => acc + r.outputTokens, 0)
 
   return (
-    <Modal title="📊 Dashboard kosztów i tokenów" onClose={close} width="820px">
+    <Modal title={<><Icon name="chart" size={16} /> Dashboard kosztów i tokenów</>} onClose={close} width="820px">
       {records === null ? (
         <div className="text-dim">
           <span className="shimmer">Liczenie…</span>

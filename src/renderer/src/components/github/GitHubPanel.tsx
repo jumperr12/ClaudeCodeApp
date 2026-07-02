@@ -1,5 +1,6 @@
 import type { GitStatusPayload } from '@shared/types'
 import type { TabState } from '@/lib/chat'
+import Icon, { type IconName } from '../Icon'
 import { useGitStore } from '@/stores/git'
 import { useUiStore } from '@/stores/ui'
 
@@ -21,11 +22,11 @@ function fileBadge(index: string, workingDir: string): { label: string; cls: str
   }
 }
 
-const CHECK_ICON: Record<string, { icon: string; cls: string }> = {
-  pass: { icon: '✓', cls: 'text-good' },
-  fail: { icon: '✗', cls: 'text-bad' },
-  pending: { icon: '●', cls: 'text-warn' },
-  none: { icon: '—', cls: 'text-dim' }
+const CHECK_ICON: Record<string, { icon: IconName; cls: string }> = {
+  pass: { icon: 'check', cls: 'text-good' },
+  fail: { icon: 'x', cls: 'text-bad' },
+  pending: { icon: 'dot', cls: 'text-warn' },
+  none: { icon: 'circle', cls: 'text-dim' }
 }
 
 export default function GitHubPanel({ tab }: { tab: TabState }): React.JSX.Element {
@@ -43,11 +44,11 @@ export default function GitHubPanel({ tab }: { tab: TabState }): React.JSX.Eleme
       <div className="px-3 py-2 border-b border-border flex items-center gap-2">
         <span className="text-bright font-bold text-[12px]">GitHub</span>
         <button
-          className="ml-auto text-dim hover:text-fg text-[12px]"
+          className="ml-auto text-dim hover:text-fg inline-flex"
           title="Odśwież"
           onClick={() => tab.cwd && void window.api.gitRefresh(tab.id)}
         >
-          ⟳
+          <Icon name="refresh" size={14} />
         </button>
       </div>
 
@@ -64,13 +65,23 @@ export default function GitHubPanel({ tab }: { tab: TabState }): React.JSX.Eleme
           {/* branch */}
           <div className="px-3 py-2 border-b border-border">
             <div className="flex items-center gap-1.5">
-              <span className="text-accent"></span>
+              <Icon name="git" size={13} className="text-accent shrink-0" />
               <span className="text-bright font-semibold truncate">{status.branch ?? '(detached)'}</span>
             </div>
             {(status.ahead ?? 0) + (status.behind ?? 0) > 0 && (
-              <div className="text-muted mt-0.5">
-                {status.ahead ? `↑${status.ahead} do wypchnięcia ` : ''}
-                {status.behind ? `↓${status.behind} do pobrania` : ''}
+              <div className="text-muted mt-0.5 flex items-center gap-2">
+                {status.ahead ? (
+                  <span className="flex items-center gap-0.5" title="do wypchnięcia">
+                    <Icon name="arrowUp" size={11} />
+                    {status.ahead}
+                  </span>
+                ) : null}
+                {status.behind ? (
+                  <span className="flex items-center gap-0.5" title="do pobrania">
+                    <Icon name="arrowDown" size={11} />
+                    {status.behind}
+                  </span>
+                ) : null}
               </div>
             )}
           </div>
@@ -85,9 +96,11 @@ export default function GitHubPanel({ tab }: { tab: TabState }): React.JSX.Eleme
                 title="Otwórz PR w przeglądarce"
               >
                 <div className="flex items-center gap-1.5">
-                  <span className={CHECK_ICON[status.pr.checks].cls}>
-                    {CHECK_ICON[status.pr.checks].icon}
-                  </span>
+                  <Icon
+                    name={CHECK_ICON[status.pr.checks].icon}
+                    size={13}
+                    className={CHECK_ICON[status.pr.checks].cls}
+                  />
                   <span className="text-accent">#{status.pr.number}</span>
                   <span className="text-dim">{status.pr.state.toLowerCase()}</span>
                 </div>
@@ -104,7 +117,9 @@ export default function GitHubPanel({ tab }: { tab: TabState }): React.JSX.Eleme
               Zmiany {status.files.length > 0 && `(${status.files.length})`}
             </div>
             {status.files.length === 0 ? (
-              <div className="text-dim">czysto ✓</div>
+              <div className="text-dim flex items-center gap-1.5">
+                <Icon name="check" size={12} className="text-good" /> czysto
+              </div>
             ) : (
               status.files.map((f) => {
                 const badge = fileBadge(f.index, f.workingDir)

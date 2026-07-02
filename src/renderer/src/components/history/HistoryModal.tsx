@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { HistoryEntry } from '@shared/types'
 import Modal from '../Modal'
+import Icon from '../Icon'
 import { useUiStore } from '@/stores/ui'
 import { useActiveTab, useSessionsStore } from '@/stores/sessions'
 
@@ -43,7 +44,7 @@ export default function HistoryModal(): React.JSX.Element {
   }
 
   return (
-    <Modal title="🕘 Historia sesji" onClose={close} width="760px">
+    <Modal title={<><Icon name="history" size={16} /> Historia sesji</>} onClose={close} width="760px">
       {!cwd ? (
         <div className="text-center py-6">
           <div className="text-muted mb-3">Wybierz folder projektu, aby zobaczyć jego sesje.</div>
@@ -68,7 +69,9 @@ export default function HistoryModal(): React.JSX.Element {
               inny folder…
             </button>
           </div>
-          <div className="text-dim text-[11px] truncate">📁 {cwd}</div>
+          <div className="text-dim text-[11px] truncate flex items-center gap-1.5">
+            <Icon name="folder" size={12} /> {cwd}
+          </div>
           {entries === null ? (
             <div className="text-dim py-4">
               <span className="shimmer">Czytanie historii…</span>
@@ -87,8 +90,8 @@ export default function HistoryModal(): React.JSX.Element {
                   <div className="flex items-center gap-2 text-[11px] text-dim">
                     <span>{new Date(e.mtime).toLocaleString('pl-PL')}</span>
                     <span>· {(e.sizeBytes / 1024).toFixed(0)} KB</span>
-                    <span className="ml-auto text-accent opacity-0 group-hover:opacity-100">
-                      ↻ wznów
+                    <span className="ml-auto text-accent opacity-0 group-hover:opacity-100 flex items-center gap-1">
+                      <Icon name="refresh" size={11} /> wznów
                     </span>
                   </div>
                   <div className="text-fg text-[12.5px] mt-0.5 line-clamp-2">{e.firstPrompt}</div>

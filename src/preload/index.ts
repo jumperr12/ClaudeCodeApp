@@ -12,7 +12,8 @@ import type {
   PermissionRequestPayload,
   SessionEventEnvelope,
   SuperpromptChunk,
-  SuperpromptRequest
+  SuperpromptRequest,
+  UsageWindow
 } from '@shared/types'
 
 function subscribe<T>(channel: string) {
@@ -73,6 +74,7 @@ const api: RendererApi = {
 
   // costs
   costList: (): Promise<CostRecord[]> => ipcRenderer.invoke('costs:list'),
+  usageWindow: (hours: number): Promise<UsageWindow> => ipcRenderer.invoke('costs:usageWindow', hours),
 
   // misc
   pickFolder: (): Promise<string | null> => ipcRenderer.invoke('dialog:pickFolder'),

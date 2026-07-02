@@ -4,6 +4,7 @@ import type { PermissionRequestPayload } from '@shared/types'
 import type { TabState } from '@/lib/chat'
 import { useSessionsStore } from '@/stores/sessions'
 import DiffCard from '../diff/DiffCard'
+import Icon from '../Icon'
 
 interface Props {
   tab: TabState
@@ -62,7 +63,7 @@ export default function PermissionModal({ tab, request }: Props): React.JSX.Elem
         }`}
       >
         <div className="px-4 py-3 border-b border-border flex items-center gap-2">
-          <span className="text-warn">⚠</span>
+          <Icon name="alert" size={16} className="text-warn shrink-0" />
           <span className="text-bright font-semibold">{title}</span>
           <span className="ml-auto text-dim text-[11px]">{request.toolName}</span>
         </div>
@@ -96,9 +97,9 @@ export default function PermissionModal({ tab, request }: Props): React.JSX.Elem
         <div className="px-4 py-3 border-t border-border flex items-center gap-2">
           <button
             onClick={allow}
-            className="bg-accent hover:bg-accent-soft text-bg font-bold rounded px-4 py-1.5"
+            className="bg-accent hover:bg-accent-soft text-bg font-bold rounded px-4 py-1.5 flex items-center gap-1.5"
           >
-            ✓ Zezwól <span className="opacity-70 font-normal">(Enter)</span>
+            <Icon name="check" size={15} /> Zezwól <span className="opacity-70 font-normal">(Enter)</span>
           </button>
           <button
             onClick={allowAlways}
@@ -108,9 +109,9 @@ export default function PermissionModal({ tab, request }: Props): React.JSX.Elem
           </button>
           <button
             onClick={() => (showDenyInput ? deny() : setShowDenyInput(true))}
-            className="ml-auto border border-bad/50 hover:bg-bad/20 text-bad rounded px-4 py-1.5"
+            className="ml-auto border border-bad/50 hover:bg-bad/20 text-bad rounded px-4 py-1.5 flex items-center gap-1.5"
           >
-            ✗ Odrzuć <span className="text-dim">(Esc)</span>
+            <Icon name="x" size={15} /> Odrzuć <span className="text-dim">(Esc)</span>
           </button>
         </div>
       </motion.div>

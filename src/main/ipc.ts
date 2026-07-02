@@ -77,6 +77,7 @@ export function registerIpc(services: Services, getWindow: () => BrowserWindow |
 
   // --- costs ---
   ipcMain.handle('costs:list', () => costs.list())
+  ipcMain.handle('costs:usageWindow', (_e, hours: number) => costs.usageWindow(hours))
 
   // --- misc ---
   ipcMain.handle('dialog:pickFolder', async () => {

@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { Spark } from './Icon'
 import { useSessionsStore } from '@/stores/sessions'
 import { useSettingsStore } from '@/stores/settings'
 import type { TabState } from '@/lib/chat'
@@ -15,11 +16,11 @@ export default function WelcomeScreen({ tab }: { tab: TabState }): React.JSX.Ele
   return (
     <div className="h-full flex flex-col items-center justify-center gap-5 select-none">
       <motion.div
-        className="text-accent text-6xl"
+        className="text-accent"
         animate={{ rotate: 360 }}
         transition={{ repeat: Infinity, duration: 14, ease: 'linear' }}
       >
-        ✳
+        <Spark size={64} />
       </motion.div>
       <div className="text-bright text-xl font-bold">Claude Code Desktop</div>
       <div className="text-muted text-sm max-w-md text-center">

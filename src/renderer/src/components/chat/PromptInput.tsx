@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { PERMISSION_MODES } from '@shared/types'
+import { PERMISSION_MODES, modelLabel } from '@shared/types'
 import { useSessionsStore } from '@/stores/sessions'
 import { useUiStore } from '@/stores/ui'
+import Icon from '../Icon'
 import type { TabState } from '@/lib/chat'
 
 export default function PromptInput({ tab }: { tab: TabState }): React.JSX.Element {
@@ -66,26 +67,19 @@ export default function PromptInput({ tab }: { tab: TabState }): React.JSX.Eleme
           onKeyDown={onKeyDown}
           rows={1}
           spellCheck={false}
-          placeholder={working ? 'Claude pracuje… (Esc aby przerwać)' : 'Napisz do Claude… (/clear, /model, ✨ superprompt)'}
+          placeholder={working ? 'Claude pracuje… (Esc aby przerwać)' : 'Napisz do Claude… (/clear, /model)'}
           className="flex-1 bg-transparent resize-none outline-none text-bright placeholder:text-dim pt-1.5 leading-relaxed"
         />
-        <button
-          className="no-drag text-lg px-1.5 pt-0.5 hover:scale-110 transition-transform"
-          title="Superprompt — wygeneruj profesjonalny prompt"
-          onClick={() => useUiStore.getState().set({ superpromptOpen: true })}
-        >
-          ✨
-        </button>
       </div>
       <div className="flex items-center gap-4 mt-1 text-[11px] text-dim">
         <button
-          className="hover:text-fg"
+          className="hover:text-fg flex items-center gap-1"
           title="Shift+Tab — zmień tryb uprawnień"
           onClick={() => void cycleMode(tab.id)}
         >
-          ⏵⏵ {modeLabel}
+          <Icon name="chevrons" size={12} /> {modeLabel}
         </button>
-        <span>{tab.model}</span>
+        <span>{modelLabel(tab.model)}</span>
         <span className="ml-auto">
           Enter wyślij · Shift+Enter nowa linia · Esc przerwij · Shift+Tab tryb
         </span>

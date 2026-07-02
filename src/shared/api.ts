@@ -10,7 +10,8 @@ import type {
   PermissionRequestPayload,
   SessionEventEnvelope,
   SuperpromptChunk,
-  SuperpromptRequest
+  SuperpromptRequest,
+  UsageWindow
 } from './types'
 
 export type Unsubscribe = () => void
@@ -49,6 +50,7 @@ export interface RendererApi {
   setApiKey(key: string | null): Promise<void>
 
   costList(): Promise<CostRecord[]>
+  usageWindow(hours: number): Promise<UsageWindow>
 
   pickFolder(): Promise<string | null>
   openExternal(url: string): Promise<void>

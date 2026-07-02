@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import Icon from '../Icon'
 import { useSessionsStore } from '@/stores/sessions'
 
 export default function SessionTabs(): React.JSX.Element {
@@ -24,25 +25,27 @@ export default function SessionTabs(): React.JSX.Element {
           >
             {tab.status === 'working' || tab.status === 'connecting' ? (
               <motion.span
-                className="text-accent text-[10px]"
+                className="text-accent inline-flex"
                 animate={{ opacity: [1, 0.2, 1] }}
                 transition={{ repeat: Infinity, duration: 1 }}
               >
-                ●
+                <Icon name="dot" size={8} />
               </motion.span>
             ) : (
-              <span className="text-dim text-[10px]">●</span>
+              <span className="text-dim inline-flex">
+                <Icon name="dot" size={8} />
+              </span>
             )}
             <span className="max-w-[140px] truncate">{tab.title}</span>
             <button
-              className="opacity-0 group-hover:opacity-100 text-dim hover:text-bad"
+              className="opacity-0 group-hover:opacity-100 text-dim hover:text-bad inline-flex"
               onClick={(e) => {
                 e.stopPropagation()
                 closeTab(tab.id)
               }}
               title="Zamknij sesję"
             >
-              ✕
+              <Icon name="x" size={12} />
             </button>
           </div>
         )

@@ -4,7 +4,9 @@ import MessageItem from './MessageItem'
 import PromptInput from './PromptInput'
 import PermissionModal from './PermissionModal'
 import WelcomeScreen from '../WelcomeScreen'
+import Icon from '../Icon'
 import { useSessionsStore } from '@/stores/sessions'
+import { useUiStore } from '@/stores/ui'
 
 export default function ChatView({ tab }: { tab: TabState }): React.JSX.Element {
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -24,8 +26,19 @@ export default function ChatView({ tab }: { tab: TabState }): React.JSX.Element 
     stickToBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 60
   }
 
+  const atStart = tab.items.length === 0
+
   return (
-    <div className="flex flex-col h-full min-w-0">
+    <div className="flex flex-col h-full min-w-0 relative">
+      {atStart && (
+        <button
+          onClick={() => useUiStore.getState().set({ superpromptOpen: true })}
+          className="absolute top-3 right-4 z-10 flex items-center gap-1.5 text-[12px] text-muted hover:text-accent border border-border hover:border-accent rounded-full px-3 py-1 bg-panel/70 backdrop-blur transition-colors"
+          title="Wygeneruj profesjonalny prompt (superprompt)"
+        >
+          <Icon name="sparkles" size={14} className="text-accent" /> Superprompt
+        </button>
+      )}
       <div ref={scrollRef} onScroll={onScroll} className="flex-1 overflow-y-auto px-5 py-3">
         <div className="max-w-[900px] mx-auto">
           {tab.items.map((item) => (

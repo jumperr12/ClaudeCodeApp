@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Spark } from '../Icon'
 
 const STATUS_WORDS = [
   'Myślę',
@@ -51,7 +52,7 @@ export default function ThinkingBlock({ text, streaming, startedAt, durationMs }
         title={expanded ? 'Zwiń myślenie' : 'Rozwiń myślenie'}
       >
         <motion.span
-          className="text-accent inline-block"
+          className="text-accent inline-flex"
           animate={streaming ? { rotate: 360, scale: [1, 1.25, 1] } : { rotate: 0, scale: 1 }}
           transition={
             streaming
@@ -59,7 +60,7 @@ export default function ThinkingBlock({ text, streaming, startedAt, durationMs }
               : { duration: 0.3 }
           }
         >
-          ✳
+          <Spark size={14} />
         </motion.span>
         {streaming ? (
           <span className="shimmer font-semibold">{STATUS_WORDS[wordIdx]}…</span>

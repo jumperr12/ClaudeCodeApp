@@ -1,27 +1,45 @@
-import { MODELS, PERMISSION_MODES, type PermissionMode } from '@shared/types'
+import {
+  MODEL_FAMILY_ORDER,
+  familyDef,
+  familyOf,
+  modelLabel,
+  newestModelId,
+  PERMISSION_MODES,
+  type ModelFamily,
+  type PermissionMode
+} from '@shared/types'
 import type { TabState } from '@/lib/chat'
+import Icon from './Icon'
+import UsageMeter from './UsageMeter'
 import { useSessionsStore } from '@/stores/sessions'
+import { useSettingsStore } from '@/stores/settings'
 
 export default function StatusBar({ tab }: { tab: TabState }): React.JSX.Element {
   const setPermissionMode = useSessionsStore((s) => s.setPermissionMode)
   const setModel = useSessionsStore((s) => s.setModel)
+  const familyVersions = useSettingsStore((s) => s.settings?.familyVersions)
   const contextPct = Math.min(100, Math.round((tab.contextTokens / tab.contextLimit) * 100))
-  const knownModel = MODELS.find((m) => tab.model.includes(m.id))?.id ?? tab.model
+  const currentFamily: ModelFamily = familyOf(tab.model) ?? 'opus'
+
+  const pickFamily = (family: ModelFamily): void => {
+    const id = familyVersions?.[family] ?? newestModelId(family)
+    void setModel(tab.id, id)
+  }
 
   return (
     <div className="h-7 shrink-0 border-t border-border bg-bg flex items-center gap-4 px-3 text-[11px] text-muted select-none">
-      <span className="truncate max-w-[280px]" title={tab.cwd ?? ''}>
-        📁 {tab.cwd ?? 'brak projektu'}
+      <span className="truncate max-w-[280px] flex items-center gap-1.5" title={tab.cwd ?? ''}>
+        <Icon name="folder" size={13} className="shrink-0" /> {tab.cwd ?? 'brak projektu'}
       </span>
       <select
-        value={knownModel}
-        onChange={(e) => void setModel(tab.id, e.target.value)}
+        value={currentFamily}
+        onChange={(e) => pickFamily(e.target.value as ModelFamily)}
         className="bg-transparent border-none outline-none text-fg hover:text-accent cursor-pointer"
-        title="Model agenta (dla tej zakładki)"
+        title={`Model: ${modelLabel(tab.model)} (klasa dla tej zakładki; wersję ustawisz w Ustawieniach)`}
       >
-        {MODELS.map((m) => (
-          <option key={m.id} value={m.id} className="bg-panel text-fg">
-            {m.label}
+        {MODEL_FAMILY_ORDER.map((f) => (
+          <option key={f} value={f} className="bg-panel text-fg">
+            {familyDef(f).label}
           </option>
         ))}
       </select>
@@ -38,6 +56,7 @@ export default function StatusBar({ tab }: { tab: TabState }): React.JSX.Element
         ))}
       </select>
       <div className="ml-auto flex items-center gap-3">
+        <UsageMeter />
         {tab.costUsd > 0 && <span title="Koszt sesji">${tab.costUsd.toFixed(4)}</span>}
         <div className="flex items-center gap-1.5" title={`Kontekst: ~${tab.contextTokens.toLocaleString('pl-PL')} tokenów`}>
           <span>kontekst</span>
@@ -51,8 +70,9 @@ export default function StatusBar({ tab }: { tab: TabState }): React.JSX.Element
           </div>
           <span>{contextPct}%</span>
         </div>
-        <span className={tab.status === 'working' ? 'text-accent' : 'text-dim'}>
-          {tab.status === 'working' ? '● pracuje' : tab.status === 'connecting' ? '● łączenie' : '○ gotowy'}
+        <span className={`flex items-center gap-1.5 ${tab.status === 'working' ? 'text-accent' : 'text-dim'}`}>
+          <Icon name={tab.status === 'idle' || tab.status === 'empty' ? 'circle' : 'dot'} size={9} />
+          {tab.status === 'working' ? 'pracuje' : tab.status === 'connecting' ? 'łączenie' : 'gotowy'}
         </span>
       </div>
     </div>

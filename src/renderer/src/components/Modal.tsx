@@ -1,8 +1,9 @@
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
+import Icon from './Icon'
 
 interface Props {
-  title: string
+  title: React.ReactNode
   onClose: () => void
   width?: string
   children: React.ReactNode
@@ -28,9 +29,9 @@ export default function Modal({ title, onClose, width = '640px', children }: Pro
         style={{ width, maxWidth: '92vw' }}
       >
         <div className="px-4 py-3 border-b border-border flex items-center">
-          <span className="text-bright font-semibold">{title}</span>
+          <div className="text-bright font-semibold flex items-center gap-2">{title}</div>
           <button className="ml-auto text-dim hover:text-fg px-1" onClick={onClose} title="Zamknij (Esc)">
-            ✕
+            <Icon name="x" size={16} />
           </button>
         </div>
         <div className="p-4 overflow-y-auto">{children}</div>

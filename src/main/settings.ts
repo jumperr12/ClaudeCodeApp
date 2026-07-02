@@ -1,12 +1,20 @@
 import { app, safeStorage } from 'electron'
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs'
 import { join } from 'path'
-import type { AppSettings, AuthMode, PermissionMode } from '@shared/types'
+import {
+  defaultFamilyVersions,
+  familyOf,
+  type AppSettings,
+  type AuthMode,
+  type ModelFamily,
+  type PermissionMode
+} from '@shared/types'
 
 interface StoredSettings {
   authMode: AuthMode
-  model: string
-  superpromptModel: string
+  modelFamily: ModelFamily
+  superpromptFamily: ModelFamily
+  familyVersions: Record<ModelFamily, string>
   defaultPermissionMode: PermissionMode
   lastCwd: string | null
   apiKeyEncrypted: string | null
@@ -14,8 +22,9 @@ interface StoredSettings {
 
 const DEFAULTS: StoredSettings = {
   authMode: 'subscription',
-  model: 'claude-opus-4-8',
-  superpromptModel: 'claude-opus-4-8',
+  modelFamily: 'opus',
+  superpromptFamily: 'opus',
+  familyVersions: defaultFamilyVersions(),
   defaultPermissionMode: 'default',
   lastCwd: null,
   apiKeyEncrypted: null
@@ -32,11 +41,39 @@ export class SettingsService {
     this.data = { ...DEFAULTS }
     try {
       if (existsSync(this.file)) {
-        this.data = { ...DEFAULTS, ...JSON.parse(readFileSync(this.file, 'utf8')) }
+        const parsed = JSON.parse(readFileSync(this.file, 'utf8')) as Partial<StoredSettings> & {
+          model?: string
+          superpromptModel?: string
+        }
+        this.data = {
+          ...DEFAULTS,
+          ...parsed,
+          // familyVersions must be a full record — merge onto defaults
+          familyVersions: { ...DEFAULTS.familyVersions, ...(parsed.familyVersions ?? {}) }
+        }
+        // Migrate legacy concrete-id settings (pre-family schema)
+        if (!parsed.modelFamily && parsed.model) {
+          const fam = familyOf(parsed.model)
+          if (fam) {
+            this.data.modelFamily = fam
+            this.data.familyVersions[fam] = parsed.model
+          }
+        }
+        if (!parsed.superpromptFamily && parsed.superpromptModel) {
+          const fam = familyOf(parsed.superpromptModel)
+          if (fam) {
+            this.data.superpromptFamily = fam
+            this.data.familyVersions[fam] = parsed.superpromptModel
+          }
+        }
       }
     } catch (err) {
       console.error('[settings] failed to read settings file:', err)
     }
+  }
+
+  private resolve(family: ModelFamily): string {
+    return this.data.familyVersions[family] ?? DEFAULTS.familyVersions[family]
   }
 
   private save(): void {
@@ -51,17 +88,23 @@ export class SettingsService {
     return {
       authMode: this.data.authMode,
       hasApiKey: this.data.apiKeyEncrypted !== null,
-      model: this.data.model,
-      superpromptModel: this.data.superpromptModel,
+      model: this.resolve(this.data.modelFamily),
+      superpromptModel: this.resolve(this.data.superpromptFamily),
+      modelFamily: this.data.modelFamily,
+      superpromptFamily: this.data.superpromptFamily,
+      familyVersions: { ...this.data.familyVersions },
       defaultPermissionMode: this.data.defaultPermissionMode,
       lastCwd: this.data.lastCwd
     }
   }
 
-  update(partial: Partial<Omit<AppSettings, 'hasApiKey'>>): AppSettings {
+  update(partial: Partial<Omit<AppSettings, 'hasApiKey' | 'model' | 'superpromptModel'>>): AppSettings {
     if (partial.authMode) this.data.authMode = partial.authMode
-    if (partial.model) this.data.model = partial.model
-    if (partial.superpromptModel) this.data.superpromptModel = partial.superpromptModel
+    if (partial.modelFamily) this.data.modelFamily = partial.modelFamily
+    if (partial.superpromptFamily) this.data.superpromptFamily = partial.superpromptFamily
+    if (partial.familyVersions) {
+      this.data.familyVersions = { ...this.data.familyVersions, ...partial.familyVersions }
+    }
     if (partial.defaultPermissionMode) this.data.defaultPermissionMode = partial.defaultPermissionMode
     if (partial.lastCwd !== undefined) this.data.lastCwd = partial.lastCwd
     this.save()

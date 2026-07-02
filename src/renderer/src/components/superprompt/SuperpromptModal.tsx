@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Modal from '../Modal'
+import Icon from '../Icon'
 import { useSuperpromptStore } from '@/stores/superprompt'
 import { useUiStore } from '@/stores/ui'
 import { useActiveTab } from '@/stores/sessions'
@@ -35,7 +36,11 @@ export default function SuperpromptModal(): React.JSX.Element {
   }
 
   return (
-    <Modal title="✨ Superprompt — wygeneruj profesjonalny prompt" onClose={close} width="820px">
+    <Modal
+      title={<><Icon name="sparkles" size={16} className="text-accent" /> Superprompt — wygeneruj profesjonalny prompt</>}
+      onClose={close}
+      width="820px"
+    >
       <div className="space-y-3">
         <div>
           <div className="text-muted text-[12px] mb-1">
@@ -80,9 +85,21 @@ export default function SuperpromptModal(): React.JSX.Element {
           <button
             onClick={generating ? cancel : generate}
             disabled={!description.trim() && !generating}
-            className="ml-auto bg-accent hover:bg-accent-soft disabled:opacity-40 text-bg font-bold rounded px-4 py-1.5"
+            className="ml-auto bg-accent hover:bg-accent-soft disabled:opacity-40 text-bg font-bold rounded px-4 py-1.5 flex items-center gap-1.5"
           >
-            {generating ? '■ Zatrzymaj' : output ? '↻ Regeneruj' : '✨ Generuj (Ctrl+Enter)'}
+            {generating ? (
+              <>
+                <span className="w-2.5 h-2.5 bg-bg rounded-[1px]" /> Zatrzymaj
+              </>
+            ) : output ? (
+              <>
+                <Icon name="refresh" size={14} /> Regeneruj
+              </>
+            ) : (
+              <>
+                <Icon name="sparkles" size={14} /> Generuj (Ctrl+Enter)
+              </>
+            )}
           </button>
         </div>
 
@@ -101,16 +118,16 @@ export default function SuperpromptModal(): React.JSX.Element {
               <button
                 onClick={insert}
                 disabled={!output || generating}
-                className="bg-accent hover:bg-accent-soft disabled:opacity-40 text-bg font-bold rounded px-4 py-1.5"
+                className="bg-accent hover:bg-accent-soft disabled:opacity-40 text-bg font-bold rounded px-4 py-1.5 flex items-center gap-1.5"
               >
-                ⤵ Wstaw do czatu
+                <Icon name="insert" size={14} /> Wstaw do czatu
               </button>
               <button
                 onClick={copy}
                 disabled={!output}
-                className="border border-border hover:border-accent disabled:opacity-40 text-fg rounded px-4 py-1.5"
+                className="border border-border hover:border-accent disabled:opacity-40 text-fg rounded px-4 py-1.5 flex items-center gap-1.5"
               >
-                {copied ? '✓ Skopiowano' : 'Kopiuj'}
+                <Icon name={copied ? 'check' : 'copy'} size={14} /> {copied ? 'Skopiowano' : 'Kopiuj'}
               </button>
             </div>
           </div>
