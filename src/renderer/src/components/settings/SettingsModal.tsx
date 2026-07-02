@@ -1,16 +1,15 @@
 import { useState } from 'react'
 import {
-  EFFORT_LEVELS,
   MODEL_FAMILIES,
   MODEL_FAMILY_ORDER,
   familyDef,
   PERMISSION_MODES,
-  type EffortLevel,
   type ModelFamily,
   type PermissionMode
 } from '@shared/types'
 import Modal from '../Modal'
 import Icon from '../Icon'
+import EffortSlider from '../EffortSlider'
 import { useSettingsStore } from '@/stores/settings'
 import { useUiStore } from '@/stores/ui'
 
@@ -190,17 +189,13 @@ export default function SettingsModal(): React.JSX.Element {
           </div>
           <div>
             <div className={label}>Domyślny effort</div>
-            <select
-              value={settings.defaultEffort}
-              onChange={(e) => void update({ defaultEffort: e.target.value as EffortLevel })}
-              className={select}
-            >
-              {EFFORT_LEVELS.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.label}
-                </option>
-              ))}
-            </select>
+            <div className="bg-panel2 border border-border rounded px-3 py-2">
+              <EffortSlider
+                value={settings.defaultEffort}
+                onChange={(e) => void update({ defaultEffort: e })}
+                width={140}
+              />
+            </div>
           </div>
         </div>
       </div>

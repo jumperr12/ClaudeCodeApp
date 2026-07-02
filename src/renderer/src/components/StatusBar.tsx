@@ -1,14 +1,8 @@
-import {
-  EFFORT_LEVELS,
-  MODEL_FAMILIES,
-  PERMISSION_MODES,
-  modelLabel,
-  type EffortLevel,
-  type PermissionMode
-} from '@shared/types'
+import { MODEL_FAMILIES, PERMISSION_MODES, modelLabel, type PermissionMode } from '@shared/types'
 import type { TabState } from '@/lib/chat'
 import Icon from './Icon'
 import InlineSelect from './InlineSelect'
+import EffortSlider from './EffortSlider'
 import UsageMeter from './UsageMeter'
 import { useSessionsStore } from '@/stores/sessions'
 
@@ -45,18 +39,7 @@ export default function StatusBar({ tab }: { tab: TabState }): React.JSX.Element
       </InlineSelect>
 
       {/* effort */}
-      <InlineSelect
-        value={tab.effort}
-        onChange={(e) => void setEffort(tab.id, e as EffortLevel)}
-        label={<span className="text-muted">effort: {tab.effort}</span>}
-        title="Poziom wysiłku (reasoning effort)"
-      >
-        {EFFORT_LEVELS.map((e) => (
-          <option key={e.id} value={e.id} className="bg-panel text-fg">
-            {e.label}
-          </option>
-        ))}
-      </InlineSelect>
+      <EffortSlider value={tab.effort} onChange={(e) => void setEffort(tab.id, e)} />
 
       {/* permission mode */}
       <InlineSelect
