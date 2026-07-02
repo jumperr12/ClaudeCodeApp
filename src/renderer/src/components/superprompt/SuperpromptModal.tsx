@@ -1,0 +1,121 @@
+import { useState } from 'react'
+import Modal from '../Modal'
+import { useSuperpromptStore } from '@/stores/superprompt'
+import { useUiStore } from '@/stores/ui'
+import { useActiveTab } from '@/stores/sessions'
+
+export default function SuperpromptModal(): React.JSX.Element {
+  const tab = useActiveTab()
+  const { output, generating, error, start, cancel, reset } = useSuperpromptStore()
+  const setUi = useUiStore((s) => s.set)
+  const [description, setDescription] = useState('')
+  const [language, setLanguage] = useState<'pl' | 'en'>('pl')
+  const [detail, setDetail] = useState<'concise' | 'detailed'>('detailed')
+  const [copied, setCopied] = useState(false)
+
+  const close = (): void => {
+    cancel()
+    setUi({ superpromptOpen: false })
+  }
+
+  const generate = (): void => {
+    if (!description.trim() || generating) return
+    start(description, language, detail, tab?.cwd ?? undefined)
+  }
+
+  const insert = (): void => {
+    setUi({ draftInsert: output, superpromptOpen: false })
+    reset()
+  }
+
+  const copy = (): void => {
+    void navigator.clipboard.writeText(output)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+
+  return (
+    <Modal title="✨ Superprompt — wygeneruj profesjonalny prompt" onClose={close} width="820px">
+      <div className="space-y-3">
+        <div>
+          <div className="text-muted text-[12px] mb-1">
+            Opisz swoimi słowami, do czego chcesz użyć Claude Code:
+          </div>
+          <textarea
+            autoFocus
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) generate()
+            }}
+            rows={4}
+            placeholder="np. chcę zbudować aplikację do śledzenia wydatków w React z wykresami i eksportem do CSV"
+            className="w-full bg-panel2 border border-border rounded p-3 outline-none text-bright placeholder:text-dim resize-y focus:border-accent"
+          />
+        </div>
+
+        <div className="flex items-center gap-4 text-[12px]">
+          <label className="flex items-center gap-1.5">
+            <span className="text-muted">Język:</span>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as 'pl' | 'en')}
+              className="bg-panel2 border border-border rounded px-2 py-1 text-fg outline-none"
+            >
+              <option value="pl">polski</option>
+              <option value="en">angielski</option>
+            </select>
+          </label>
+          <label className="flex items-center gap-1.5">
+            <span className="text-muted">Szczegółowość:</span>
+            <select
+              value={detail}
+              onChange={(e) => setDetail(e.target.value as 'concise' | 'detailed')}
+              className="bg-panel2 border border-border rounded px-2 py-1 text-fg outline-none"
+            >
+              <option value="detailed">szczegółowy</option>
+              <option value="concise">zwięzły</option>
+            </select>
+          </label>
+          <button
+            onClick={generating ? cancel : generate}
+            disabled={!description.trim() && !generating}
+            className="ml-auto bg-accent hover:bg-accent-soft disabled:opacity-40 text-bg font-bold rounded px-4 py-1.5"
+          >
+            {generating ? '■ Zatrzymaj' : output ? '↻ Regeneruj' : '✨ Generuj (Ctrl+Enter)'}
+          </button>
+        </div>
+
+        {(output || generating || error) && (
+          <div>
+            <div className="text-muted text-[12px] mb-1 flex items-center gap-2">
+              Wygenerowany prompt:
+              {generating && <span className="shimmer">piszę…</span>}
+            </div>
+            <pre className="bg-panel2 border border-border rounded p-3 whitespace-pre-wrap text-[12.5px] text-fg max-h-[38vh] overflow-y-auto leading-relaxed">
+              {output}
+              {generating && <span className="caret" />}
+            </pre>
+            {error && <div className="text-bad text-[12px] mt-1">Błąd: {error}</div>}
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={insert}
+                disabled={!output || generating}
+                className="bg-accent hover:bg-accent-soft disabled:opacity-40 text-bg font-bold rounded px-4 py-1.5"
+              >
+                ⤵ Wstaw do czatu
+              </button>
+              <button
+                onClick={copy}
+                disabled={!output}
+                className="border border-border hover:border-accent disabled:opacity-40 text-fg rounded px-4 py-1.5"
+              >
+                {copied ? '✓ Skopiowano' : 'Kopiuj'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </Modal>
+  )
+}

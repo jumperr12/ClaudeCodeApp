@@ -1,0 +1,275 @@
+import { randomUUID } from 'crypto'
+import { readFileSync, existsSync } from 'fs'
+import {
+  query,
+  type Options,
+  type PermissionResult,
+  type PermissionUpdate,
+  type SDKUserMessage
+} from '@anthropic-ai/claude-agent-sdk'
+import type { BrowserWindow } from 'electron'
+import type {
+  CreateSessionOptions,
+  FileDiffPayload,
+  PermissionMode,
+  PermissionRequestPayload
+} from '@shared/types'
+import { PermissionBroker } from './permissions'
+import type { SettingsService } from '../settings'
+import type { CostService } from '../costs'
+
+const EDIT_TOOLS = new Set(['Edit', 'Write', 'MultiEdit'])
+
+function permissionKey(toolName: string, input: Record<string, unknown>): string {
+  if (toolName === 'Bash' && typeof input.command === 'string') {
+    const first = input.command.trim().split(/\s+/)[0] ?? ''
+    return `Bash:${first}`
+  }
+  return toolName
+}
+
+/** Precompute old/new file contents so the renderer can show a Monaco diff. */
+function computeDiff(toolName: string, input: Record<string, unknown>): FileDiffPayload | undefined {
+  try {
+    const filePath = typeof input.file_path === 'string' ? input.file_path : undefined
+    if (!filePath) return undefined
+    const oldContent = existsSync(filePath) ? readFileSync(filePath, 'utf8') : ''
+    if (toolName === 'Write' && typeof input.content === 'string') {
+      return { filePath, oldContent, newContent: input.content }
+    }
+    if (toolName === 'Edit' && typeof input.old_string === 'string' && typeof input.new_string === 'string') {
+      const newContent = input.replace_all
+        ? oldContent.split(input.old_string).join(input.new_string)
+        : oldContent.replace(input.old_string, input.new_string)
+      return { filePath, oldContent, newContent }
+    }
+    if (toolName === 'MultiEdit' && Array.isArray(input.edits)) {
+      let newContent = oldContent
+      for (const e of input.edits as { old_string?: string; new_string?: string; replace_all?: boolean }[]) {
+        if (typeof e.old_string !== 'string' || typeof e.new_string !== 'string') continue
+        newContent = e.replace_all
+          ? newContent.split(e.old_string).join(e.new_string)
+          : newContent.replace(e.old_string, e.new_string)
+      }
+      return { filePath, oldContent, newContent }
+    }
+  } catch (err) {
+    console.error('[diff] failed to compute diff:', err)
+  }
+  return undefined
+}
+
+class AgentSession {
+  private pendingInput: SDKUserMessage[] = []
+  private wake: (() => void) | null = null
+  private closed = false
+  private q: ReturnType<typeof query> | null = null
+  private alwaysAllow = new Set<string>()
+  permissionMode: PermissionMode
+
+  constructor(
+    readonly tabId: string,
+    readonly opts: CreateSessionOptions,
+    private win: BrowserWindow,
+    private broker: PermissionBroker,
+    private settings: SettingsService,
+    private costs: CostService,
+    private onClosed: (tabId: string) => void
+  ) {
+    this.permissionMode = opts.permissionMode
+  }
+
+  private send(channel: string, payload: unknown): void {
+    if (!this.win.isDestroyed()) this.win.webContents.send(channel, payload)
+  }
+
+  start(): void {
+    const self = this
+    async function* input(): AsyncGenerator<SDKUserMessage> {
+      while (!self.closed) {
+        while (self.pendingInput.length > 0) yield self.pendingInput.shift() as SDKUserMessage
+        await new Promise<void>((resolve) => {
+          self.wake = resolve
+        })
+      }
+    }
+
+    const options: Options = {
+      cwd: this.opts.cwd,
+      model: this.opts.model,
+      permissionMode: this.permissionMode,
+      includePartialMessages: true,
+      resume: this.opts.resume,
+      env: this.settings.agentEnv(),
+      settingSources: ['user', 'project', 'local'],
+      canUseTool: (toolName, toolInput, extra) => this.onCanUseTool(toolName, toolInput, extra),
+      stderr: (data: string) => console.error(`[agent ${this.tabId}]`, data)
+    }
+
+    this.q = query({ prompt: input(), options })
+    void this.pump()
+  }
+
+  private async pump(): Promise<void> {
+    try {
+      for await (const message of this.q as AsyncIterable<Record<string, unknown>>) {
+        this.send('session:event', { tabId: this.tabId, message })
+        if (message.type === 'result') {
+          this.costs.record(this.opts.cwd, message)
+        }
+      }
+    } catch (err) {
+      if (!this.closed) {
+        this.send('session:event', {
+          tabId: this.tabId,
+          message: { type: 'app_error', error: String(err) }
+        })
+      }
+    } finally {
+      this.closed = true
+      this.send('session:event', { tabId: this.tabId, message: { type: 'app_closed' } })
+      this.onClosed(this.tabId)
+    }
+  }
+
+  private async onCanUseTool(
+    toolName: string,
+    input: Record<string, unknown>,
+    extra: { signal: AbortSignal; suggestions?: unknown[]; title?: string; displayName?: string }
+  ): Promise<PermissionResult> {
+    if (this.permissionMode === 'bypassPermissions') {
+      return { behavior: 'allow', updatedInput: input }
+    }
+    const key = permissionKey(toolName, input)
+    if (this.alwaysAllow.has(key)) {
+      return { behavior: 'allow', updatedInput: input }
+    }
+
+    const requestId = randomUUID()
+    const payload: PermissionRequestPayload = {
+      requestId,
+      tabId: this.tabId,
+      toolName,
+      input,
+      title: extra.title,
+      displayName: extra.displayName,
+      diff: EDIT_TOOLS.has(toolName) ? computeDiff(toolName, input) : undefined
+    }
+    this.send('permission:request', payload)
+
+    const decision = await this.broker.wait(requestId, extra.signal)
+    this.send('permission:resolved', { requestId, tabId: this.tabId, decision })
+
+    if (decision.kind === 'deny') {
+      return {
+        behavior: 'deny',
+        message: decision.message?.trim() || 'Użytkownik odrzucił tę operację.'
+      }
+    }
+    if (decision.kind === 'allowAlways') {
+      this.alwaysAllow.add(key)
+      const suggestions = extra.suggestions
+      if (Array.isArray(suggestions) && suggestions.length > 0) {
+        return {
+          behavior: 'allow',
+          updatedInput: input,
+          updatedPermissions: suggestions as PermissionUpdate[]
+        }
+      }
+    }
+    return { behavior: 'allow', updatedInput: input }
+  }
+
+  sendUserMessage(text: string): void {
+    this.pendingInput.push({
+      type: 'user',
+      message: { role: 'user', content: text },
+      parent_tool_use_id: null,
+      session_id: ''
+    } as unknown as SDKUserMessage)
+    this.wake?.()
+    this.wake = null
+  }
+
+  async interrupt(): Promise<void> {
+    try {
+      await this.q?.interrupt()
+    } catch (err) {
+      console.error('[agent] interrupt failed:', err)
+    }
+  }
+
+  async setPermissionMode(mode: PermissionMode): Promise<void> {
+    this.permissionMode = mode
+    try {
+      await this.q?.setPermissionMode(mode)
+    } catch (err) {
+      // Older SDKs may not support live mode change — local mode still affects canUseTool.
+      console.error('[agent] setPermissionMode failed:', err)
+    }
+  }
+
+  async setModel(model: string): Promise<boolean> {
+    try {
+      await this.q?.setModel(model)
+      return true
+    } catch (err) {
+      console.error('[agent] setModel failed:', err)
+      return false
+    }
+  }
+
+  close(): void {
+    if (this.closed) return
+    this.closed = true
+    this.wake?.()
+    this.wake = null
+    void this.q?.interrupt().catch(() => {})
+  }
+}
+
+export class SessionManager {
+  private sessions = new Map<string, AgentSession>()
+
+  constructor(
+    private broker: PermissionBroker,
+    private settings: SettingsService,
+    private costs: CostService
+  ) {}
+
+  create(win: BrowserWindow, tabId: string, opts: CreateSessionOptions): void {
+    this.sessions.get(tabId)?.close()
+    const session = new AgentSession(tabId, opts, win, this.broker, this.settings, this.costs, (id) =>
+      this.sessions.delete(id)
+    )
+    this.sessions.set(tabId, session)
+    session.start()
+  }
+
+  send(tabId: string, text: string): void {
+    this.sessions.get(tabId)?.sendUserMessage(text)
+  }
+
+  async interrupt(tabId: string): Promise<void> {
+    await this.sessions.get(tabId)?.interrupt()
+  }
+
+  async setPermissionMode(tabId: string, mode: PermissionMode): Promise<void> {
+    await this.sessions.get(tabId)?.setPermissionMode(mode)
+  }
+
+  async setModel(tabId: string, model: string): Promise<boolean> {
+    return (await this.sessions.get(tabId)?.setModel(model)) ?? false
+  }
+
+  close(tabId: string): void {
+    this.sessions.get(tabId)?.close()
+    this.sessions.delete(tabId)
+  }
+
+  closeAll(): void {
+    for (const [, s] of this.sessions) s.close()
+    this.sessions.clear()
+    this.broker.denyAll()
+  }
+}

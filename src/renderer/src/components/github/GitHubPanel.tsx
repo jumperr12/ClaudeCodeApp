@@ -1,0 +1,149 @@
+import type { GitStatusPayload } from '@shared/types'
+import type { TabState } from '@/lib/chat'
+import { useGitStore } from '@/stores/git'
+import { useUiStore } from '@/stores/ui'
+
+function fileBadge(index: string, workingDir: string): { label: string; cls: string } {
+  const code = (workingDir.trim() || index.trim() || '?').slice(0, 1)
+  switch (code) {
+    case 'M':
+      return { label: 'M', cls: 'text-warn' }
+    case 'A':
+      return { label: 'A', cls: 'text-good' }
+    case 'D':
+      return { label: 'D', cls: 'text-bad' }
+    case 'R':
+      return { label: 'R', cls: 'text-accent' }
+    case '?':
+      return { label: 'U', cls: 'text-muted' }
+    default:
+      return { label: code, cls: 'text-muted' }
+  }
+}
+
+const CHECK_ICON: Record<string, { icon: string; cls: string }> = {
+  pass: { icon: '✓', cls: 'text-good' },
+  fail: { icon: '✗', cls: 'text-bad' },
+  pending: { icon: '●', cls: 'text-warn' },
+  none: { icon: '—', cls: 'text-dim' }
+}
+
+export default function GitHubPanel({ tab }: { tab: TabState }): React.JSX.Element {
+  const status: GitStatusPayload | undefined = useGitStore((s) => s.byTab[tab.id])
+  const setUi = useUiStore((s) => s.set)
+
+  const openFileDiff = async (path: string): Promise<void> => {
+    if (!tab.cwd) return
+    const diff = await window.api.gitFileDiff(tab.cwd, path)
+    setUi({ fileDiff: diff })
+  }
+
+  return (
+    <div className="w-[300px] shrink-0 border-l border-border bg-panel flex flex-col h-full">
+      <div className="px-3 py-2 border-b border-border flex items-center gap-2">
+        <span className="text-bright font-bold text-[12px]">GitHub</span>
+        <button
+          className="ml-auto text-dim hover:text-fg text-[12px]"
+          title="Odśwież"
+          onClick={() => tab.cwd && void window.api.gitRefresh(tab.id)}
+        >
+          ⟳
+        </button>
+      </div>
+
+      {!tab.cwd ? (
+        <div className="p-3 text-dim text-[12px]">Otwórz folder projektu…</div>
+      ) : !status ? (
+        <div className="p-3 text-dim text-[12px]">
+          <span className="shimmer">Czytanie repozytorium…</span>
+        </div>
+      ) : !status.isRepo ? (
+        <div className="p-3 text-dim text-[12px]">To nie jest repozytorium git.</div>
+      ) : (
+        <div className="flex-1 overflow-y-auto text-[12px]">
+          {/* branch */}
+          <div className="px-3 py-2 border-b border-border">
+            <div className="flex items-center gap-1.5">
+              <span className="text-accent"></span>
+              <span className="text-bright font-semibold truncate">{status.branch ?? '(detached)'}</span>
+            </div>
+            {(status.ahead ?? 0) + (status.behind ?? 0) > 0 && (
+              <div className="text-muted mt-0.5">
+                {status.ahead ? `↑${status.ahead} do wypchnięcia ` : ''}
+                {status.behind ? `↓${status.behind} do pobrania` : ''}
+              </div>
+            )}
+          </div>
+
+          {/* PR */}
+          <div className="px-3 py-2 border-b border-border">
+            <div className="text-dim uppercase text-[10px] tracking-wider mb-1">Pull Request</div>
+            {status.pr ? (
+              <button
+                className="text-left w-full hover:bg-panel2 rounded p-1 -m-1"
+                onClick={() => status.pr && void window.api.openExternal(status.pr.url)}
+                title="Otwórz PR w przeglądarce"
+              >
+                <div className="flex items-center gap-1.5">
+                  <span className={CHECK_ICON[status.pr.checks].cls}>
+                    {CHECK_ICON[status.pr.checks].icon}
+                  </span>
+                  <span className="text-accent">#{status.pr.number}</span>
+                  <span className="text-dim">{status.pr.state.toLowerCase()}</span>
+                </div>
+                <div className="text-fg truncate">{status.pr.title}</div>
+              </button>
+            ) : (
+              <div className="text-dim">brak PR dla tej gałęzi</div>
+            )}
+          </div>
+
+          {/* changes */}
+          <div className="px-3 py-2 border-b border-border">
+            <div className="text-dim uppercase text-[10px] tracking-wider mb-1">
+              Zmiany {status.files.length > 0 && `(${status.files.length})`}
+            </div>
+            {status.files.length === 0 ? (
+              <div className="text-dim">czysto ✓</div>
+            ) : (
+              status.files.map((f) => {
+                const badge = fileBadge(f.index, f.workingDir)
+                return (
+                  <button
+                    key={f.path}
+                    className="flex items-center gap-2 w-full text-left hover:bg-panel2 rounded px-1 py-0.5"
+                    onClick={() => void openFileDiff(f.path)}
+                    title="Pokaż diff vs HEAD"
+                  >
+                    <span className={`${badge.cls} font-bold w-3`}>{badge.label}</span>
+                    <span className="text-fg truncate">{f.path}</span>
+                  </button>
+                )
+              })
+            )}
+          </div>
+
+          {/* commits */}
+          <div className="px-3 py-2">
+            <div className="text-dim uppercase text-[10px] tracking-wider mb-1">Ostatnie commity</div>
+            {status.commits.length === 0 ? (
+              <div className="text-dim">brak commitów</div>
+            ) : (
+              status.commits.map((c) => (
+                <div key={c.hash} className="py-0.5">
+                  <span className="text-accent">{c.hash}</span>{' '}
+                  <span className="text-fg">{c.message.split('\n')[0].slice(0, 60)}</span>
+                  <div className="text-dim text-[10.5px]">
+                    {c.author} · {new Date(c.date).toLocaleString('pl-PL')}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {status.error && <div className="px-3 py-2 text-bad">{status.error}</div>}
+        </div>
+      )}
+    </div>
+  )
+}
