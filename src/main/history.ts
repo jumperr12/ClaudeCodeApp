@@ -85,7 +85,10 @@ function parseMeta(filePath: string, size: number): SessionMeta {
     }
   }
 
-  const tokens = input + output + cacheCreate + cacheRead
+  // "Processed" tokens: fresh input + generated output + cache writes. We deliberately
+  // exclude cache_read — it's the same cached context re-read on every model request
+  // (often hundreds per session), so summing it wildly overcounts real usage.
+  const tokens = input + output + cacheCreate
   return {
     firstPrompt: (firstPrompt ?? '(brak podglądu)').slice(0, 300),
     cwd,

@@ -128,13 +128,19 @@ export default function HomeScreen({ tab }: { tab: TabState }): React.JSX.Elemen
                         {modelLabel(e.model)}
                       </span>
                     )}
-                    <span className="flex items-center gap-1" title="Łączne tokeny (wejście + wyjście + cache)">
+                    <span
+                      className="flex items-center gap-1"
+                      title="Przetworzone tokeny: wejście + wygenerowane + zapis cache. Odczyty cache (ten sam kontekst czytany na każdym z setek zapytań) są pominięte, bo zawyżają sumę wielokrotnie."
+                    >
                       <Icon name="gauge" size={11} /> {fmtTokens(e.tokens)} tok.
                     </span>
                     {e.turns !== undefined && e.turns > 0 && <span>· {e.turns} tur</span>}
-                    {e.costUsd !== undefined && (
-                      <span className="text-muted" title="Szacunkowy koszt (cennik API)">
-                        ~${e.costUsd < 0.01 ? e.costUsd.toFixed(4) : e.costUsd.toFixed(2)}
+                    {e.costUsd !== undefined && e.costUsd >= 0.0005 && (
+                      <span
+                        className="text-muted"
+                        title="Szacunek wg cennika API (z odczytami cache ×0.1). Na subskrypcji wliczone w plan — nie płacisz per token."
+                      >
+                        ~${e.costUsd < 1 ? e.costUsd.toFixed(3) : e.costUsd.toFixed(2)} <span className="text-dim">(API)</span>
                       </span>
                     )}
                     <span className="ml-auto text-accent opacity-0 group-hover:opacity-100 flex items-center gap-1">
