@@ -58,7 +58,7 @@ export default function EffortControl({ tab }: { tab: TabState }): React.JSX.Ele
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute bottom-full mb-2 left-0 z-50 w-[340px] bg-panel border border-border rounded-lg shadow-2xl p-4">
+          <div className="absolute bottom-full mb-2 left-0 z-50 w-72 bg-panel border border-border rounded-lg shadow-2xl p-3.5">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-bright font-semibold text-[14px]">Effort</span>
               <span
@@ -83,30 +83,47 @@ export default function EffortControl({ tab }: { tab: TabState }): React.JSX.Ele
               <span>Smarter</span>
             </div>
 
-            {/* slider */}
-            <div className="relative h-6 select-none">
+            {/* slider — thick track, rounded-rectangle thumb */}
+            <div className="relative h-7 select-none">
+              {/* track */}
               <div
-                className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-3 rounded-full border border-border overflow-hidden"
-                style={{
-                  background: ultraOk
-                    ? `linear-gradient(to right, color-mix(in srgb, var(--color-accent) 12%, var(--color-panel2)), var(--color-accent) 62%, ${ULTRA})`
-                    : 'linear-gradient(to right, color-mix(in srgb, var(--color-accent) 12%, var(--color-panel2)), var(--color-accent))'
-                }}
+                className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-7 rounded-lg border border-border overflow-hidden"
+                style={{ background: 'var(--color-panel2)' }}
               >
-                {/* dotted texture */}
+                {/* faster→smarter wash (subtle) */}
                 <div
-                  className="absolute inset-0 opacity-40"
+                  className="absolute inset-0"
                   style={{
-                    backgroundImage: 'radial-gradient(var(--color-bg) 0.5px, transparent 0.6px)',
-                    backgroundSize: '5px 5px'
+                    background: ultraOk
+                      ? `linear-gradient(to right, transparent 30%, color-mix(in srgb, var(--color-accent) 22%, transparent) 70%, color-mix(in srgb, ${ULTRA} 55%, transparent))`
+                      : 'linear-gradient(to right, transparent 40%, color-mix(in srgb, var(--color-accent) 22%, transparent))'
                   }}
                 />
+                {/* segment dividers */}
+                {stops.map((_, i) =>
+                  i === 0 ? null : (
+                    <div
+                      key={i}
+                      className="absolute top-1 bottom-1 w-px bg-border"
+                      style={{ left: `${(i / (stops.length - 1)) * 100}%` }}
+                    />
+                  )
+                )}
+                {/* ultracode end marker */}
+                {ultraOk && !isUltra && (
+                  <div
+                    className="absolute top-1/2 -translate-y-1/2 right-1.5 w-1.5 h-1.5 rounded-full"
+                    style={{ background: ULTRA }}
+                  />
+                )}
               </div>
+              {/* thumb: rounded rectangle (inset so it stays within the track at both ends) */}
               <div
-                className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-bright shadow-md pointer-events-none transition-[left,box-shadow]"
+                className="absolute top-1/2 -translate-y-1/2 h-6 w-7 rounded-md pointer-events-none transition-[left,box-shadow]"
                 style={{
-                  left: `calc(${pct}% - 10px)`,
-                  boxShadow: isUltra ? `0 0 0 3px ${ULTRA}, 0 0 10px ${ULTRA}` : '0 0 0 1px rgba(0,0,0,0.35)'
+                  left: `calc(${pct}% - ${(pct / 100) * 28}px)`,
+                  background: isUltra ? ULTRA_SOFT : 'var(--color-bright)',
+                  boxShadow: isUltra ? `0 0 0 1px ${ULTRA}, 0 0 12px ${ULTRA}` : '0 1px 3px rgba(0,0,0,0.5)'
                 }}
               />
               <input
