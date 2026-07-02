@@ -4,6 +4,7 @@ import type {
   AppSettings,
   CostRecord,
   CreateSessionOptions,
+  EffortLevel,
   FileDiffPayload,
   GitStatusPayload,
   HistoryEntry,
@@ -38,6 +39,8 @@ const api: RendererApi = {
   setModel: (tabId: string, model: string): Promise<boolean> =>
     ipcRenderer.invoke('session:setModel', tabId, model),
   planUsage: (tabId: string): Promise<PlanUsage> => ipcRenderer.invoke('session:planUsage', tabId),
+  setEffort: (tabId: string, effort: EffortLevel): Promise<boolean> =>
+    ipcRenderer.invoke('session:setEffort', tabId, effort),
   onSessionEvent: subscribe<SessionEventEnvelope>('session:event'),
 
   // permissions

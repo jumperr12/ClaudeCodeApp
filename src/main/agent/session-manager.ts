@@ -10,6 +10,7 @@ import {
 import type { BrowserWindow } from 'electron'
 import type {
   CreateSessionOptions,
+  EffortLevel,
   FileDiffPayload,
   PermissionMode,
   PermissionRequestPayload,
@@ -99,6 +100,7 @@ class AgentSession {
       cwd: this.opts.cwd,
       model: this.opts.model,
       permissionMode: this.permissionMode,
+      effort: this.opts.effort,
       includePartialMessages: true,
       resume: this.opts.resume,
       env: this.settings.agentEnv(),
@@ -220,6 +222,17 @@ class AgentSession {
     }
   }
 
+  async setEffort(effort: EffortLevel): Promise<boolean> {
+    try {
+      // Live effort change via the flag-settings layer (Settings.effortLevel).
+      await this.q?.applyFlagSettings({ effortLevel: effort as 'low' | 'medium' | 'high' | 'xhigh' })
+      return true
+    } catch (err) {
+      console.error('[agent] setEffort failed:', err)
+      return false
+    }
+  }
+
   /** Real plan usage (5h / 7-day utilization) — same data as Claude Code's /usage. */
   async getPlanUsage(): Promise<PlanUsage> {
     try {
@@ -295,6 +308,10 @@ export class SessionManager {
 
   async setModel(tabId: string, model: string): Promise<boolean> {
     return (await this.sessions.get(tabId)?.setModel(model)) ?? false
+  }
+
+  async setEffort(tabId: string, effort: EffortLevel): Promise<boolean> {
+    return (await this.sessions.get(tabId)?.setEffort(effort)) ?? false
   }
 
   async getPlanUsage(tabId: string): Promise<PlanUsage> {

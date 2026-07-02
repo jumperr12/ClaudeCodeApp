@@ -2,6 +2,7 @@ import type {
   AppSettings,
   CostRecord,
   CreateSessionOptions,
+  EffortLevel,
   FileDiffPayload,
   GitStatusPayload,
   HistoryEntry,
@@ -26,6 +27,7 @@ export interface RendererApi {
   setPermissionMode(tabId: string, mode: PermissionMode): Promise<void>
   setModel(tabId: string, model: string): Promise<boolean>
   planUsage(tabId: string): Promise<PlanUsage>
+  setEffort(tabId: string, effort: EffortLevel): Promise<boolean>
   onSessionEvent(cb: (payload: SessionEventEnvelope) => void): Unsubscribe
 
   onPermissionRequest(cb: (payload: PermissionRequestPayload) => void): Unsubscribe

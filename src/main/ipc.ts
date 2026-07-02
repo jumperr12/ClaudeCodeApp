@@ -2,6 +2,7 @@ import { ipcMain, dialog, shell, type BrowserWindow } from 'electron'
 import type {
   AppSettings,
   CreateSessionOptions,
+  EffortLevel,
   PermissionDecision,
   PermissionMode,
   SuperpromptRequest
@@ -49,6 +50,9 @@ export function registerIpc(services: Services, getWindow: () => BrowserWindow |
   )
   ipcMain.handle('session:setModel', (_e, tabId: string, model: string) => sessions.setModel(tabId, model))
   ipcMain.handle('session:planUsage', (_e, tabId: string) => sessions.getPlanUsage(tabId))
+  ipcMain.handle('session:setEffort', (_e, tabId: string, effort: EffortLevel) =>
+    sessions.setEffort(tabId, effort)
+  )
 
   // --- permissions ---
   ipcMain.handle('permission:respond', (_e, requestId: string, decision: PermissionDecision) =>

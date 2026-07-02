@@ -42,11 +42,18 @@ export default function App(): React.JSX.Element {
     const first = st.tabs[0]
     if (st.tabs.length === 1 && first && !first.cwd) {
       useSessionsStore.setState({
-        tabs: [{ ...first, model: settings.model, permissionMode: settings.defaultPermissionMode }]
+        tabs: [
+          {
+            ...first,
+            model: settings.model,
+            permissionMode: settings.defaultPermissionMode,
+            effort: settings.defaultEffort
+          }
+        ]
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings?.model, settings?.defaultPermissionMode])
+  }, [settings?.model, settings?.defaultPermissionMode, settings?.defaultEffort])
 
   if (!activeTab) return <div className="h-full" />
 

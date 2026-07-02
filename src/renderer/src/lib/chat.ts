@@ -1,5 +1,5 @@
 // Chat item model + pure reducer translating SDK messages into UI items.
-import type { PermissionMode } from '@shared/types'
+import type { EffortLevel, PermissionMode } from '@shared/types'
 
 export type ChatItem =
   | { kind: 'user'; id: string; text: string }
@@ -32,6 +32,7 @@ export interface TabState {
   cwd: string | null
   model: string
   permissionMode: PermissionMode
+  effort: EffortLevel
   status: 'empty' | 'connecting' | 'idle' | 'working'
   items: ChatItem[]
   sdkSessionId?: string
@@ -48,13 +49,19 @@ export function nextId(): string {
   return `i${++counter}`
 }
 
-export function createTab(id: string, model: string, permissionMode: PermissionMode): TabState {
+export function createTab(
+  id: string,
+  model: string,
+  permissionMode: PermissionMode,
+  effort: EffortLevel = 'high'
+): TabState {
   return {
     id,
     title: 'Nowa sesja',
     cwd: null,
     model,
     permissionMode,
+    effort,
     status: 'empty',
     items: [],
     costUsd: 0,

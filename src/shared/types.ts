@@ -3,6 +3,15 @@
 export type PermissionMode = 'default' | 'acceptEdits' | 'plan' | 'bypassPermissions'
 export type AuthMode = 'subscription' | 'apiKey'
 export type ModelFamily = 'fable' | 'opus' | 'sonnet' | 'haiku'
+export type EffortLevel = 'low' | 'medium' | 'high' | 'xhigh' | 'max'
+
+export const EFFORT_LEVELS: { id: EffortLevel; label: string }[] = [
+  { id: 'low', label: 'low' },
+  { id: 'medium', label: 'medium' },
+  { id: 'high', label: 'high' },
+  { id: 'xhigh', label: 'xhigh' },
+  { id: 'max', label: 'max' }
+]
 
 export interface AppSettings {
   authMode: AuthMode
@@ -18,6 +27,7 @@ export interface AppSettings {
   /** Pinned version id per family (default: newest). */
   familyVersions: Record<ModelFamily, string>
   defaultPermissionMode: PermissionMode
+  defaultEffort: EffortLevel
   lastCwd: string | null
 }
 
@@ -25,6 +35,7 @@ export interface CreateSessionOptions {
   cwd: string
   model: string
   permissionMode: PermissionMode
+  effort: EffortLevel
   resume?: string
 }
 

@@ -6,6 +6,7 @@ import {
   familyOf,
   type AppSettings,
   type AuthMode,
+  type EffortLevel,
   type ModelFamily,
   type PermissionMode
 } from '@shared/types'
@@ -16,6 +17,7 @@ interface StoredSettings {
   superpromptFamily: ModelFamily
   familyVersions: Record<ModelFamily, string>
   defaultPermissionMode: PermissionMode
+  defaultEffort: EffortLevel
   lastCwd: string | null
   apiKeyEncrypted: string | null
 }
@@ -26,6 +28,7 @@ const DEFAULTS: StoredSettings = {
   superpromptFamily: 'opus',
   familyVersions: defaultFamilyVersions(),
   defaultPermissionMode: 'default',
+  defaultEffort: 'high',
   lastCwd: null,
   apiKeyEncrypted: null
 }
@@ -94,6 +97,7 @@ export class SettingsService {
       superpromptFamily: this.data.superpromptFamily,
       familyVersions: { ...this.data.familyVersions },
       defaultPermissionMode: this.data.defaultPermissionMode,
+      defaultEffort: this.data.defaultEffort,
       lastCwd: this.data.lastCwd
     }
   }
@@ -106,6 +110,7 @@ export class SettingsService {
       this.data.familyVersions = { ...this.data.familyVersions, ...partial.familyVersions }
     }
     if (partial.defaultPermissionMode) this.data.defaultPermissionMode = partial.defaultPermissionMode
+    if (partial.defaultEffort) this.data.defaultEffort = partial.defaultEffort
     if (partial.lastCwd !== undefined) this.data.lastCwd = partial.lastCwd
     this.save()
     return this.getPublic()

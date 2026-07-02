@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import {
+  EFFORT_LEVELS,
   MODEL_FAMILIES,
   MODEL_FAMILY_ORDER,
   familyDef,
   PERMISSION_MODES,
+  type EffortLevel,
   type ModelFamily,
   type PermissionMode
 } from '@shared/types'
@@ -171,19 +173,35 @@ export default function SettingsModal(): React.JSX.Element {
           <FamilyChips value={settings.superpromptFamily} onPick={(f) => void update({ superpromptFamily: f })} />
         </div>
 
-        <div>
-          <div className={label}>Domyślny tryb uprawnień (nowe sesje)</div>
-          <select
-            value={settings.defaultPermissionMode}
-            onChange={(e) => void update({ defaultPermissionMode: e.target.value as PermissionMode })}
-            className={select}
-          >
-            {PERMISSION_MODES.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.label}
-              </option>
-            ))}
-          </select>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <div className={label}>Domyślny tryb uprawnień</div>
+            <select
+              value={settings.defaultPermissionMode}
+              onChange={(e) => void update({ defaultPermissionMode: e.target.value as PermissionMode })}
+              className={select}
+            >
+              {PERMISSION_MODES.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <div className={label}>Domyślny effort</div>
+            <select
+              value={settings.defaultEffort}
+              onChange={(e) => void update({ defaultEffort: e.target.value as EffortLevel })}
+              className={select}
+            >
+              {EFFORT_LEVELS.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
     </Modal>

@@ -18,6 +18,7 @@ export type IconName =
   | 'dot'
   | 'circle'
   | 'chevrons'
+  | 'chevronDown'
   | 'gauge'
   | 'send'
   | 'copy'
@@ -116,6 +117,7 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <polyline points="13 7 18 12 13 17" />
     </>
   ),
+  chevronDown: <polyline points="6 9 12 15 18 9" />,
   gauge: (
     <>
       <path d="M4 18a8 8 0 1 1 16 0" />

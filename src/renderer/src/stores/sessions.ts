@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type {
+  EffortLevel,
   PermissionDecision,
   PermissionMode,
   PermissionRequestPayload,
@@ -26,6 +27,7 @@ interface SessionsState {
   cyclePermissionMode: (tabId: string) => Promise<void>
   setPermissionMode: (tabId: string, mode: PermissionMode) => Promise<void>
   setModel: (tabId: string, model: string) => Promise<void>
+  setEffort: (tabId: string, effort: EffortLevel) => Promise<void>
   respondPermission: (tabId: string, decision: PermissionDecision) => Promise<void>
   handleSessionEvent: (envelope: SessionEventEnvelope) => void
   handlePermissionRequest: (payload: PermissionRequestPayload) => void
@@ -40,7 +42,7 @@ function patchTab(tabs: TabState[], tabId: string, fn: (t: TabState) => TabState
 }
 
 export const useSessionsStore = create<SessionsState>((set, get) => {
-  const initialTab = createTab(newTabId(), 'claude-opus-4-8', 'default')
+  const initialTab = createTab(newTabId(), 'claude-opus-4-8', 'default', 'high')
   return {
     tabs: [initialTab],
     activeTabId: initialTab.id,
@@ -48,7 +50,12 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
 
     addTab: () => {
       const s = useSettingsStore.getState().settings
-      const tab = createTab(newTabId(), s?.model ?? 'claude-opus-4-8', s?.defaultPermissionMode ?? 'default')
+      const tab = createTab(
+        newTabId(),
+        s?.model ?? 'claude-opus-4-8',
+        s?.defaultPermissionMode ?? 'default',
+        s?.defaultEffort ?? 'high'
+      )
       set((st) => ({ tabs: [...st.tabs, tab], activeTabId: tab.id }))
       return tab.id
     },
@@ -64,7 +71,12 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
         if (active === tabId) active = tabs[tabs.length - 1]?.id ?? ''
         if (tabs.length === 0) {
           const s = useSettingsStore.getState().settings
-          const fresh = createTab(newTabId(), s?.model ?? 'claude-opus-4-8', s?.defaultPermissionMode ?? 'default')
+          const fresh = createTab(
+            newTabId(),
+            s?.model ?? 'claude-opus-4-8',
+            s?.defaultPermissionMode ?? 'default',
+            s?.defaultEffort ?? 'high'
+          )
           return { tabs: [fresh], activeTabId: fresh.id, permissionQueues: queues }
         }
         return { tabs, activeTabId: active, permissionQueues: queues }
@@ -92,6 +104,7 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
         cwd,
         model: tab.model,
         permissionMode: tab.permissionMode,
+        effort: tab.effort,
         resume
       })
       await window.api.gitSubscribe(tabId, cwd)
@@ -178,6 +191,22 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
       }))
     },
 
+    setEffort: async (tabId, effort) => {
+      const tab = get().tabs.find((t) => t.id === tabId)
+      if (!tab || tab.effort === effort) return
+      // Live change if a session exists; otherwise it applies at next createSession.
+      const ok = tab.sdkSessionId ? await window.api.setEffort(tabId, effort) : true
+      set((st) => ({
+        tabs: patchTab(st.tabs, tabId, (t) => ({
+          ...t,
+          effort: ok ? effort : t.effort,
+          items: ok
+            ? [...t.items, { kind: 'info', id: nextId(), text: `Effort: ${effort}`, tone: 'normal' }]
+            : t.items
+        }))
+      }))
+    },
+
     respondPermission: async (tabId, decision) => {
       const queue = get().permissionQueues[tabId] ?? []
       const current = queue[0]
@@ -235,7 +264,8 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
       await window.api.createSession(tabId, {
         cwd: tab.cwd,
         model: tab.model,
-        permissionMode: tab.permissionMode
+        permissionMode: tab.permissionMode,
+        effort: tab.effort
       })
     }
   }
