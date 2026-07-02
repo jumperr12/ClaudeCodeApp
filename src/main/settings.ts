@@ -96,6 +96,16 @@ export class SettingsService {
   agentEnv(): Record<string, string> {
     const env: Record<string, string> = {}
     for (const [k, v] of Object.entries(process.env)) if (v !== undefined) env[k] = v
+
+    // Drop any Claude Code *session* state inherited from a parent process. If the
+    // app is launched from a terminal that was running Claude Code, these vars make
+    // the spawned SDK expect a host to supply/refresh auth (CLAUDE_CODE_SDK_HAS_*
+    // OAUTH/HOST_AUTH_REFRESH), so it never reads ~/.claude/.credentials.json and
+    // fails with "Not logged in". We are our own entrypoint — start clean.
+    for (const k of Object.keys(env)) {
+      if (k === 'CLAUDECODE' || k.startsWith('CLAUDE_CODE_')) delete env[k]
+    }
+
     const key = this.data.authMode === 'apiKey' ? this.getApiKey() : null
     if (key) env.ANTHROPIC_API_KEY = key
     else delete env.ANTHROPIC_API_KEY // subscription: force CLI stored credentials
