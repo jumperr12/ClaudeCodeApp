@@ -6,6 +6,10 @@ import type { TabState } from '@/lib/chat'
 
 type Stop = { id: EffortLevel | 'ultracode'; label: string }
 
+/** Vivid, high-energy colour for Ultracode — distinct from the app's terracotta accent. */
+const ULTRA = '#7c5cff'
+const ULTRA_SOFT = '#a888ff'
+
 /**
  * "Effort" control styled after Claude Code: a single Faster→Smarter slider
  * whose top stop is Ultracode (for xhigh-capable models). App-accent themed.
@@ -41,8 +45,9 @@ export default function EffortControl({ tab }: { tab: TabState }): React.JSX.Ele
       <button
         onClick={() => setOpen((o) => !o)}
         className={`flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-panel2 ${
-          isUltra ? 'text-accent' : 'text-muted hover:text-fg'
+          isUltra ? 'font-semibold' : 'text-muted hover:text-fg'
         }`}
+        style={isUltra ? { color: ULTRA_SOFT } : undefined}
         title="Effort — od Faster do Smarter (prawy skraj: Ultracode)"
       >
         {isUltra ? <Icon name="sparkles" size={12} /> : <Icon name="gauge" size={12} />}
@@ -53,16 +58,19 @@ export default function EffortControl({ tab }: { tab: TabState }): React.JSX.Ele
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute bottom-full mb-2 left-0 z-50 w-64 bg-panel border border-border rounded-lg shadow-2xl p-3">
-            <div className="flex items-center gap-2 mb-2.5">
-              <span className="text-bright font-semibold text-[13px]">Effort</span>
-              <span className={`text-[13px] font-semibold ${isUltra ? 'text-accent' : 'text-fg'}`}>
+          <div className="absolute bottom-full mb-2 left-0 z-50 w-[340px] bg-panel border border-border rounded-lg shadow-2xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-bright font-semibold text-[14px]">Effort</span>
+              <span
+                className="text-[14px] font-semibold"
+                style={{ color: isUltra ? ULTRA_SOFT : 'var(--color-fg)' }}
+              >
                 {current.label}
               </span>
               <Icon
-                name="alert"
-                size={13}
-                className="ml-auto text-dim"
+                name="help"
+                size={14}
+                className="ml-auto text-dim hover:text-fg"
                 title={
                   'Wyższy effort = model myśli dłużej i dokładniej (Smarter), niższy = szybciej (Faster).\n' +
                   'Ultracode (tylko Opus 4.7/4.8, Fable 5): xhigh + dynamiczna orkiestracja workflow.'
@@ -76,12 +84,13 @@ export default function EffortControl({ tab }: { tab: TabState }): React.JSX.Ele
             </div>
 
             {/* slider */}
-            <div className="relative h-5 select-none">
+            <div className="relative h-6 select-none">
               <div
-                className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-2.5 rounded-full border border-border overflow-hidden"
+                className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-3 rounded-full border border-border overflow-hidden"
                 style={{
-                  background:
-                    'linear-gradient(to right, color-mix(in srgb, var(--color-accent) 12%, var(--color-panel2)), var(--color-accent))'
+                  background: ultraOk
+                    ? `linear-gradient(to right, color-mix(in srgb, var(--color-accent) 12%, var(--color-panel2)), var(--color-accent) 62%, ${ULTRA})`
+                    : 'linear-gradient(to right, color-mix(in srgb, var(--color-accent) 12%, var(--color-panel2)), var(--color-accent))'
                 }}
               >
                 {/* dotted texture */}
@@ -94,8 +103,11 @@ export default function EffortControl({ tab }: { tab: TabState }): React.JSX.Ele
                 />
               </div>
               <div
-                className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-bright shadow-md ring-1 ring-black/30 pointer-events-none transition-[left]"
-                style={{ left: `calc(${pct}% - 8px)` }}
+                className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-bright shadow-md pointer-events-none transition-[left,box-shadow]"
+                style={{
+                  left: `calc(${pct}% - 10px)`,
+                  boxShadow: isUltra ? `0 0 0 3px ${ULTRA}, 0 0 10px ${ULTRA}` : '0 0 0 1px rgba(0,0,0,0.35)'
+                }}
               />
               <input
                 type="range"
@@ -110,18 +122,21 @@ export default function EffortControl({ tab }: { tab: TabState }): React.JSX.Ele
             </div>
 
             {/* stop labels */}
-            <div className="flex justify-between mt-1.5 text-[10px]">
-              {stops.map((s, i) => (
-                <button
-                  key={s.id}
-                  onClick={() => pick(i)}
-                  className={`px-0.5 ${
-                    i === idx ? (isUltra ? 'text-accent font-semibold' : 'text-fg font-semibold') : 'text-dim hover:text-fg'
-                  }`}
-                >
-                  {s.id === 'ultracode' ? 'ultra' : s.label}
-                </button>
-              ))}
+            <div className="flex justify-between mt-2 text-[11px]">
+              {stops.map((s, i) => {
+                const active = i === idx
+                const ultra = s.id === 'ultracode'
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => pick(i)}
+                    className={`px-0.5 ${active ? 'font-semibold' : 'text-dim hover:text-fg'}`}
+                    style={active ? { color: ultra ? ULTRA_SOFT : 'var(--color-fg)' } : ultra ? { color: ULTRA_SOFT, opacity: 0.75 } : undefined}
+                  >
+                    {ultra ? 'ultra' : s.label}
+                  </button>
+                )
+              })}
             </div>
           </div>
         </>

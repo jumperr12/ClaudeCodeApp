@@ -22,6 +22,7 @@ export type IconName =
   | 'gauge'
   | 'send'
   | 'copy'
+  | 'help'
 
 interface Props {
   name: IconName
@@ -118,6 +119,13 @@ const PATHS: Record<IconName, React.ReactNode> = {
     </>
   ),
   chevronDown: <polyline points="6 9 12 15 18 9" />,
+  help: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.2 9.2a2.8 2.8 0 0 1 5.5.8c0 1.9-2.8 2-2.8 3.5" />
+      <line x1="12" y1="17.5" x2="12.01" y2="17.5" />
+    </>
+  ),
   gauge: (
     <>
       <path d="M4 18a8 8 0 1 1 16 0" />
