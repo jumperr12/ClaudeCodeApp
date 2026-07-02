@@ -1,7 +1,148 @@
 import { homedir } from 'os'
 import { join, basename } from 'path'
 import { readdirSync, statSync, existsSync, openSync, readSync, closeSync, readFileSync } from 'fs'
-import type { HistoryEntry } from '@shared/types'
+import { estimateCostUsd, type HistoryEntry } from '@shared/types'
+
+const HEAD_ONLY_ABOVE = 25 * 1024 * 1024 // parse only the head of transcripts larger than this
+
+interface SessionMeta {
+  firstPrompt: string
+  cwd?: string
+  model?: string
+  tokens: number
+  turns: number
+  costUsd?: number
+}
+
+/** Parse a transcript for model, token totals, first prompt, cwd and an estimated cost. */
+function parseMeta(filePath: string, size: number): SessionMeta {
+  let content = ''
+  try {
+    if (size > HEAD_ONLY_ABOVE) {
+      const fd = openSync(filePath, 'r')
+      const buf = Buffer.alloc(256 * 1024)
+      const n = readSync(fd, buf, 0, buf.length, 0)
+      closeSync(fd)
+      content = buf.toString('utf8', 0, n)
+    } else {
+      content = readFileSync(filePath, 'utf8')
+    }
+  } catch {
+    return { firstPrompt: '(brak podglądu)', tokens: 0, turns: 0 }
+  }
+
+  let firstPrompt: string | undefined
+  let cwd: string | undefined
+  let model: string | undefined
+  let input = 0
+  let output = 0
+  let cacheCreate = 0
+  let cacheRead = 0
+  let turns = 0
+
+  for (const line of content.split('\n')) {
+    const t = line.trim()
+    if (!t) continue
+    let o: Record<string, unknown>
+    try {
+      o = JSON.parse(t)
+    } catch {
+      continue
+    }
+    if (typeof o.cwd === 'string') cwd = o.cwd
+    if (o.type === 'summary' && typeof o.summary === 'string' && firstPrompt === undefined) {
+      firstPrompt = o.summary
+    }
+    const m = o.message as Record<string, unknown> | undefined
+    if (m && typeof m === 'object') {
+      if (typeof m.model === 'string' && m.model && m.model !== '<synthetic>') model = m.model
+      const u = m.usage as Record<string, unknown> | undefined
+      if (u && typeof u === 'object') {
+        input += Number(u.input_tokens ?? 0)
+        output += Number(u.output_tokens ?? 0)
+        cacheCreate += Number(u.cache_creation_input_tokens ?? 0)
+        cacheRead += Number(u.cache_read_input_tokens ?? 0)
+      }
+      if (o.type === 'user') {
+        const c = m.content
+        let text: string | undefined
+        if (typeof c === 'string') text = c
+        else if (Array.isArray(c)) {
+          for (const b of c) {
+            const blk = b as Record<string, unknown>
+            if (blk?.type === 'text' && typeof blk.text === 'string') {
+              text = blk.text
+              break
+            }
+          }
+        }
+        // a real human turn has a text block (tool_result-only user msgs don't)
+        if (text !== undefined) {
+          turns += 1
+          if (firstPrompt === undefined) firstPrompt = text
+        }
+      }
+    }
+  }
+
+  const tokens = input + output + cacheCreate + cacheRead
+  return {
+    firstPrompt: (firstPrompt ?? '(brak podglądu)').slice(0, 300),
+    cwd,
+    model,
+    tokens,
+    turns,
+    costUsd: model ? estimateCostUsd(model, input, output, cacheCreate, cacheRead) : undefined
+  }
+}
+
+/** All sessions across every project, newest first, enriched with model/tokens/cost. */
+export function listAllSessions(limit = 100): HistoryEntry[] {
+  const root = join(homedir(), '.claude', 'projects')
+  if (!existsSync(root)) return []
+  const files: { path: string; name: string; mtime: number; size: number }[] = []
+  for (const dirName of readdirSync(root)) {
+    const dir = join(root, dirName)
+    try {
+      if (!statSync(dir).isDirectory()) continue
+    } catch {
+      continue
+    }
+    let names: string[]
+    try {
+      names = readdirSync(dir)
+    } catch {
+      continue
+    }
+    for (const name of names) {
+      if (!name.endsWith('.jsonl')) continue
+      const path = join(dir, name)
+      try {
+        const st = statSync(path)
+        files.push({ path, name, mtime: st.mtimeMs, size: st.size })
+      } catch {
+        // skip
+      }
+    }
+  }
+  files.sort((a, b) => b.mtime - a.mtime)
+  return files.slice(0, limit).map((f) => {
+    const meta = parseMeta(f.path, f.size)
+    const cwd = meta.cwd ?? ''
+    return {
+      sessionId: basename(f.name, '.jsonl'),
+      mtime: f.mtime,
+      sizeBytes: f.size,
+      firstPrompt: meta.firstPrompt,
+      cwd,
+      model: meta.model,
+      tokens: meta.tokens,
+      costUsd: meta.costUsd,
+      turns: meta.turns,
+      project: cwd ? basename(cwd) : undefined
+    }
+  })
+}
 
 /**
  * Reads Claude Code session transcripts from ~/.claude/projects/<sanitized-cwd>/*.jsonl —

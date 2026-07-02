@@ -3,7 +3,7 @@ import type { TabState } from '@/lib/chat'
 import MessageItem from './MessageItem'
 import PromptInput from './PromptInput'
 import PermissionModal from './PermissionModal'
-import WelcomeScreen from '../WelcomeScreen'
+import HomeScreen from '../HomeScreen'
 import Icon from '../Icon'
 import { useSessionsStore } from '@/stores/sessions'
 import { useUiStore } from '@/stores/ui'
@@ -18,7 +18,7 @@ export default function ChatView({ tab }: { tab: TabState }): React.JSX.Element 
     if (el && stickToBottom.current) el.scrollTop = el.scrollHeight
   }, [tab.items])
 
-  if (!tab.cwd) return <WelcomeScreen tab={tab} />
+  if (!tab.cwd) return <HomeScreen tab={tab} />
 
   const onScroll = (): void => {
     const el = scrollRef.current

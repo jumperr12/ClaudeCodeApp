@@ -49,6 +49,7 @@ export interface RendererApi {
 
   historyList(cwd: string): Promise<HistoryEntry[]>
   historySearch(cwd: string, q: string): Promise<HistoryEntry[]>
+  historyListAll(limit?: number): Promise<HistoryEntry[]>
 
   getSettings(): Promise<AppSettings>
   updateSettings(partial: Partial<AppSettings>): Promise<AppSettings>

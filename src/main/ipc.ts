@@ -13,7 +13,7 @@ import { GitService } from './git/git-service'
 import { SuperpromptService } from './superprompt'
 import { SettingsService } from './settings'
 import { CostService } from './costs'
-import { listSessions, searchSessions } from './history'
+import { listSessions, searchSessions, listAllSessions } from './history'
 
 export interface Services {
   sessions: SessionManager
@@ -77,6 +77,7 @@ export function registerIpc(services: Services, getWindow: () => BrowserWindow |
   // --- history ---
   ipcMain.handle('history:list', (_e, cwd: string) => listSessions(cwd))
   ipcMain.handle('history:search', (_e, cwd: string, q: string) => searchSessions(cwd, q))
+  ipcMain.handle('history:listAll', (_e, limit?: number) => listAllSessions(limit))
 
   // --- settings ---
   ipcMain.handle('settings:get', () => settings.getPublic())

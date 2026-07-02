@@ -105,6 +105,34 @@ export interface HistoryEntry {
   sizeBytes: number
   firstPrompt: string
   cwd: string
+  /** Enriched metadata (from parsing the transcript). */
+  model?: string
+  tokens?: number
+  costUsd?: number
+  project?: string
+  turns?: number
+}
+
+/** Approx list price per 1M tokens by family, for cost estimates in the history panel. */
+const FAMILY_PRICE: Record<ModelFamily, { in: number; out: number }> = {
+  fable: { in: 10, out: 50 },
+  opus: { in: 5, out: 25 },
+  sonnet: { in: 3, out: 15 },
+  haiku: { in: 1, out: 5 }
+}
+
+/** Rough cost estimate (list prices; cache-read ~0.1x, cache-write ~1.25x of input). */
+export function estimateCostUsd(
+  model: string,
+  input: number,
+  output: number,
+  cacheCreate = 0,
+  cacheRead = 0
+): number {
+  const p = FAMILY_PRICE[familyOf(model) ?? 'opus']
+  const inSide = (input + cacheCreate * 1.25 + cacheRead * 0.1) / 1e6 * p.in
+  const outSide = (output / 1e6) * p.out
+  return inSide + outSide
 }
 
 export interface CostRecord {
