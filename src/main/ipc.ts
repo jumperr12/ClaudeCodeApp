@@ -48,6 +48,7 @@ export function registerIpc(services: Services, getWindow: () => BrowserWindow |
     sessions.setPermissionMode(tabId, mode)
   )
   ipcMain.handle('session:setModel', (_e, tabId: string, model: string) => sessions.setModel(tabId, model))
+  ipcMain.handle('session:planUsage', (_e, tabId: string) => sessions.getPlanUsage(tabId))
 
   // --- permissions ---
   ipcMain.handle('permission:respond', (_e, requestId: string, decision: PermissionDecision) =>

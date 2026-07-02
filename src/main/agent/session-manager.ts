@@ -12,7 +12,8 @@ import type {
   CreateSessionOptions,
   FileDiffPayload,
   PermissionMode,
-  PermissionRequestPayload
+  PermissionRequestPayload,
+  PlanUsage
 } from '@shared/types'
 import { PermissionBroker } from './permissions'
 import type { SettingsService } from '../settings'
@@ -219,6 +220,40 @@ class AgentSession {
     }
   }
 
+  /** Real plan usage (5h / 7-day utilization) — same data as Claude Code's /usage. */
+  async getPlanUsage(): Promise<PlanUsage> {
+    try {
+      const q = this.q as unknown as {
+        usage_EXPERIMENTAL_MAY_CHANGE_DO_NOT_RELY_ON_THIS_API_YET?: () => Promise<{
+          session?: { total_cost_usd?: number }
+          subscription_type?: string | null
+          rate_limits_available?: boolean
+          rate_limits?: {
+            five_hour?: { utilization: number | null; resets_at: string | null } | null
+            seven_day?: { utilization: number | null; resets_at: string | null } | null
+          } | null
+        }>
+      }
+      const fn = q?.usage_EXPERIMENTAL_MAY_CHANGE_DO_NOT_RELY_ON_THIS_API_YET
+      if (!fn) return { available: false, subscriptionType: null }
+      const r = await fn.call(q)
+      const map = (
+        w?: { utilization: number | null; resets_at: string | null } | null
+      ): { utilization: number | null; resetsAt: string | null } | null =>
+        w ? { utilization: w.utilization, resetsAt: w.resets_at } : null
+      return {
+        available: r.rate_limits_available === true,
+        subscriptionType: r.subscription_type ?? null,
+        sessionCostUsd: r.session?.total_cost_usd,
+        fiveHour: map(r.rate_limits?.five_hour),
+        sevenDay: map(r.rate_limits?.seven_day)
+      }
+    } catch (err) {
+      console.error('[agent] getPlanUsage failed:', err)
+      return { available: false, subscriptionType: null }
+    }
+  }
+
   close(): void {
     if (this.closed) return
     this.closed = true
@@ -260,6 +295,12 @@ export class SessionManager {
 
   async setModel(tabId: string, model: string): Promise<boolean> {
     return (await this.sessions.get(tabId)?.setModel(model)) ?? false
+  }
+
+  async getPlanUsage(tabId: string): Promise<PlanUsage> {
+    const session = this.sessions.get(tabId)
+    if (!session) return { available: false, subscriptionType: null }
+    return session.getPlanUsage()
   }
 
   close(tabId: string): void {

@@ -8,6 +8,7 @@ import type {
   PermissionDecision,
   PermissionMode,
   PermissionRequestPayload,
+  PlanUsage,
   SessionEventEnvelope,
   SuperpromptChunk,
   SuperpromptRequest,
@@ -24,6 +25,7 @@ export interface RendererApi {
   closeSession(tabId: string): Promise<void>
   setPermissionMode(tabId: string, mode: PermissionMode): Promise<void>
   setModel(tabId: string, model: string): Promise<boolean>
+  planUsage(tabId: string): Promise<PlanUsage>
   onSessionEvent(cb: (payload: SessionEventEnvelope) => void): Unsubscribe
 
   onPermissionRequest(cb: (payload: PermissionRequestPayload) => void): Unsubscribe

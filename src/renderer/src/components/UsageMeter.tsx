@@ -1,46 +1,102 @@
 import { useEffect, useState } from 'react'
-import type { UsageWindow } from '@shared/types'
+import type { PlanUsage, UsageWindow } from '@shared/types'
 import Icon from './Icon'
-import { useSessionsStore } from '@/stores/sessions'
+import { useSessionsStore, useActiveTab } from '@/stores/sessions'
 import { useUiStore } from '@/stores/ui'
 
+function resetIn(iso: string | null | undefined): string {
+  if (!iso) return ''
+  const ms = new Date(iso).getTime() - Date.now()
+  if (!Number.isFinite(ms) || ms <= 0) return 'reset wkrótce'
+  const h = Math.floor(ms / 3_600_000)
+  const m = Math.floor((ms % 3_600_000) / 60_000)
+  return `reset za ${h > 0 ? `${h}h ` : ''}${m}m`
+}
+
+function barColor(pct: number): string {
+  return pct > 85 ? 'var(--color-bad)' : pct > 60 ? 'var(--color-warn)' : 'var(--color-good)'
+}
+
 /**
- * Rolling 5-hour usage meter for the status bar. Local estimate from the app's
- * own completed turns (the real subscription quota isn't exposed by the API).
+ * Status-bar usage meter. Prefers the REAL claude.ai plan 5-hour utilization
+ * (same data as Claude Code's /usage); falls back to a local rolling estimate
+ * for API-key sessions where plan limits don't apply.
  */
-export default function UsageMeter(): React.JSX.Element {
-  const [usage, setUsage] = useState<UsageWindow | null>(null)
-  // sum of live session costs — changes whenever a turn completes → triggers refetch
+export default function UsageMeter(): React.JSX.Element | null {
+  const tab = useActiveTab()
+  const hasSession = !!tab?.sdkSessionId
+  const tabId = tab?.id
   const liveCost = useSessionsStore((s) => s.tabs.reduce((a, t) => a + t.costUsd, 0))
   const setUi = useUiStore((s) => s.set)
 
+  const [plan, setPlan] = useState<PlanUsage | null>(null)
+  const [local, setLocal] = useState<UsageWindow | null>(null)
+
   useEffect(() => {
     let cancelled = false
-    const load = (): void => {
-      void window.api.usageWindow(5).then((u) => !cancelled && setUsage(u))
+    const load = async (): Promise<void> => {
+      let p: PlanUsage | null = null
+      if (hasSession && tabId) {
+        p = await window.api.planUsage(tabId).catch(() => null)
+      }
+      if (cancelled) return
+      setPlan(p)
+      // fall back to local estimate when plan limits aren't available
+      if (!p?.available) {
+        const w = await window.api.usageWindow(5).catch(() => null)
+        if (!cancelled) setLocal(w)
+      }
     }
-    load()
-    const interval = setInterval(load, 60_000) // advance the rolling window
+    void load()
+    const interval = setInterval(() => void load(), 60_000)
     return () => {
       cancelled = true
       clearInterval(interval)
     }
-  }, [liveCost])
+  }, [hasSession, tabId, liveCost])
 
-  const buckets = usage?.buckets ?? []
+  // --- real plan usage (subscription) ---
+  const five = plan?.available ? plan.fiveHour : null
+  if (five && five.utilization !== null) {
+    const pct = Math.max(0, Math.min(100, Math.round(five.utilization)))
+    const seven = plan?.sevenDay
+    return (
+      <button
+        onClick={() => setUi({ dashboardOpen: true })}
+        className="flex items-center gap-1.5 text-dim hover:text-fg transition-colors"
+        title={
+          `Limit planu ${plan?.subscriptionType ?? ''} — okno 5h: ${pct}% (${resetIn(five.resetsAt)})` +
+          (seven && seven.utilization !== null
+            ? `\nOkno 7 dni: ${Math.round(seven.utilization)}% (${resetIn(seven.resetsAt)})`
+            : '') +
+          '\nDane z planu claude.ai (jak /usage w Claude Code).'
+        }
+      >
+        <Icon name="gauge" size={13} style={{ color: barColor(pct) }} />
+        <span className="tabular-nums">5h</span>
+        <div className="w-16 h-1.5 bg-panel2 rounded overflow-hidden">
+          <div className="h-full transition-all" style={{ width: `${pct}%`, background: barColor(pct) }} />
+        </div>
+        <span className="tabular-nums text-fg">{pct}%</span>
+        {five.resetsAt && <span className="text-dim">· {resetIn(five.resetsAt)}</span>}
+      </button>
+    )
+  }
+
+  // --- local fallback estimate (API-key mode / no plan limits) ---
+  const buckets = local?.buckets ?? []
   const max = Math.max(0.0001, ...buckets)
-  const cost = usage?.costUsd ?? 0
-  const turns = usage?.turns ?? 0
+  const cost = local?.costUsd ?? 0
+  const turns = local?.turns ?? 0
 
   return (
     <button
       onClick={() => setUi({ dashboardOpen: true })}
       className="flex items-center gap-1.5 text-dim hover:text-fg transition-colors"
-      title={`Zużycie z ostatnich 5h (lokalny szacunek): $${cost.toFixed(4)} · ${turns} tur · ${(usage?.tokens ?? 0).toLocaleString('pl-PL')} tokenów.\nKliknij, aby otworzyć dashboard. To nie jest oficjalny limit subskrypcji.`}
+      title={`Zużycie tej aplikacji z ostatnich 5h (lokalny szacunek): $${cost.toFixed(4)} · ${turns} tur.\nLimit planu niedostępny w tym trybie (klucz API lub brak sesji).`}
     >
       <Icon name="gauge" size={13} className="text-accent/80" />
       <span className="tabular-nums">5h</span>
-      {/* sparkline */}
       <svg width="46" height="14" viewBox="0 0 46 14" className="overflow-visible">
         {buckets.map((v, i) => {
           const w = 46 / buckets.length

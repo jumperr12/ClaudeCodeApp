@@ -115,6 +115,25 @@ export interface UsageWindow {
   buckets: number[]
 }
 
+export interface RateLimitWindow {
+  /** Percentage of the window used, 0-100. */
+  utilization: number | null
+  /** ISO 8601 timestamp when the window resets. */
+  resetsAt: string | null
+}
+
+/**
+ * Real claude.ai plan rate-limit utilization (same data as Claude Code's /usage).
+ * `available` is false for API-key/Bedrock/Vertex sessions where plan limits don't apply.
+ */
+export interface PlanUsage {
+  available: boolean
+  subscriptionType: string | null
+  sessionCostUsd?: number
+  fiveHour?: RateLimitWindow | null
+  sevenDay?: RateLimitWindow | null
+}
+
 export interface SuperpromptRequest {
   requestId: string
   description: string

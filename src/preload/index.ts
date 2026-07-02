@@ -10,6 +10,7 @@ import type {
   PermissionDecision,
   PermissionMode,
   PermissionRequestPayload,
+  PlanUsage,
   SessionEventEnvelope,
   SuperpromptChunk,
   SuperpromptRequest,
@@ -36,6 +37,7 @@ const api: RendererApi = {
     ipcRenderer.invoke('session:setPermissionMode', tabId, mode),
   setModel: (tabId: string, model: string): Promise<boolean> =>
     ipcRenderer.invoke('session:setModel', tabId, model),
+  planUsage: (tabId: string): Promise<PlanUsage> => ipcRenderer.invoke('session:planUsage', tabId),
   onSessionEvent: subscribe<SessionEventEnvelope>('session:event'),
 
   // permissions
