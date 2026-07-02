@@ -231,6 +231,18 @@ export function familyOf(modelId: string): ModelFamily | undefined {
   return MODEL_FAMILIES.find((f) => f.versions.some((v) => v.id === modelId))?.family
 }
 
+/** Models that support the `xhigh` effort level (required for ultracode). */
+export const XHIGH_CAPABLE = new Set(['claude-fable-5', 'claude-opus-4-8', 'claude-opus-4-7'])
+
+export function supportsXhigh(modelId: string): boolean {
+  return XHIGH_CAPABLE.has(modelId)
+}
+
+/** Ultracode (xhigh + dynamic workflows) needs an xhigh-capable model — Opus 4.7/4.8, Fable 5. */
+export function supportsUltracode(modelId: string): boolean {
+  return supportsXhigh(modelId)
+}
+
 export function modelLabel(modelId: string): string {
   for (const f of MODEL_FAMILIES) {
     const v = f.versions.find((x) => x.id === modelId)

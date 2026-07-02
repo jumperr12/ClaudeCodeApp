@@ -41,6 +41,8 @@ const api: RendererApi = {
   planUsage: (tabId: string): Promise<PlanUsage> => ipcRenderer.invoke('session:planUsage', tabId),
   setEffort: (tabId: string, effort: EffortLevel): Promise<boolean> =>
     ipcRenderer.invoke('session:setEffort', tabId, effort),
+  setUltracode: (tabId: string, enabled: boolean): Promise<boolean> =>
+    ipcRenderer.invoke('session:setUltracode', tabId, enabled),
   onSessionEvent: subscribe<SessionEventEnvelope>('session:event'),
 
   // permissions

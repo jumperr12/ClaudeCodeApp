@@ -233,6 +233,17 @@ class AgentSession {
     }
   }
 
+  /** Ultracode = xhigh effort + standing dynamic-workflow orchestration (session-scoped). */
+  async setUltracode(enabled: boolean): Promise<boolean> {
+    try {
+      await this.q?.applyFlagSettings({ ultracode: enabled })
+      return true
+    } catch (err) {
+      console.error('[agent] setUltracode failed:', err)
+      return false
+    }
+  }
+
   /** Real plan usage (5h / 7-day utilization) — same data as Claude Code's /usage. */
   async getPlanUsage(): Promise<PlanUsage> {
     try {
@@ -312,6 +323,10 @@ export class SessionManager {
 
   async setEffort(tabId: string, effort: EffortLevel): Promise<boolean> {
     return (await this.sessions.get(tabId)?.setEffort(effort)) ?? false
+  }
+
+  async setUltracode(tabId: string, enabled: boolean): Promise<boolean> {
+    return (await this.sessions.get(tabId)?.setUltracode(enabled)) ?? false
   }
 
   async getPlanUsage(tabId: string): Promise<PlanUsage> {

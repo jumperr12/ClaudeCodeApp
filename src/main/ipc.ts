@@ -53,6 +53,9 @@ export function registerIpc(services: Services, getWindow: () => BrowserWindow |
   ipcMain.handle('session:setEffort', (_e, tabId: string, effort: EffortLevel) =>
     sessions.setEffort(tabId, effort)
   )
+  ipcMain.handle('session:setUltracode', (_e, tabId: string, enabled: boolean) =>
+    sessions.setUltracode(tabId, enabled)
+  )
 
   // --- permissions ---
   ipcMain.handle('permission:respond', (_e, requestId: string, decision: PermissionDecision) =>

@@ -28,6 +28,7 @@ export interface RendererApi {
   setModel(tabId: string, model: string): Promise<boolean>
   planUsage(tabId: string): Promise<PlanUsage>
   setEffort(tabId: string, effort: EffortLevel): Promise<boolean>
+  setUltracode(tabId: string, enabled: boolean): Promise<boolean>
   onSessionEvent(cb: (payload: SessionEventEnvelope) => void): Unsubscribe
 
   onPermissionRequest(cb: (payload: PermissionRequestPayload) => void): Unsubscribe

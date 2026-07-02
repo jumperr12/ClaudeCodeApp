@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { supportsUltracode } from '@shared/types'
 import type {
   EffortLevel,
   PermissionDecision,
@@ -28,6 +29,7 @@ interface SessionsState {
   setPermissionMode: (tabId: string, mode: PermissionMode) => Promise<void>
   setModel: (tabId: string, model: string) => Promise<void>
   setEffort: (tabId: string, effort: EffortLevel) => Promise<void>
+  setUltracode: (tabId: string, enabled: boolean) => Promise<void>
   respondPermission: (tabId: string, decision: PermissionDecision) => Promise<void>
   handleSessionEvent: (envelope: SessionEventEnvelope) => void
   handlePermissionRequest: (payload: PermissionRequestPayload) => void
@@ -180,10 +182,15 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
       // If a session is already live, ask the SDK to switch; otherwise just record
       // the choice so the next createSession/openFolder uses it.
       const ok = tab.sdkSessionId ? await window.api.setModel(tabId, model) : true
+      // ultracode requires an xhigh-capable model — turn it off if switching away
+      if (ok && tab.ultracode && !supportsUltracode(model)) {
+        if (tab.sdkSessionId) void window.api.setUltracode(tabId, false)
+      }
       set((st) => ({
         tabs: patchTab(st.tabs, tabId, (t) => ({
           ...t,
           model: ok ? model : t.model,
+          ultracode: ok && !supportsUltracode(model) ? false : t.ultracode,
           items: ok
             ? [...t.items, { kind: 'info', id: nextId(), text: `Model: ${model}`, tone: 'normal' }]
             : [...t.items, { kind: 'info', id: nextId(), text: `Nie udało się zmienić modelu na ${model}`, tone: 'error' }]
@@ -196,12 +203,43 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
       if (!tab || tab.effort === effort) return
       // Live change if a session exists; otherwise it applies at next createSession.
       const ok = tab.sdkSessionId ? await window.api.setEffort(tabId, effort) : true
+      // moving effort off xhigh turns ultracode off (it's an xhigh mode)
+      if (ok && tab.ultracode && effort !== 'xhigh' && tab.sdkSessionId) {
+        void window.api.setUltracode(tabId, false)
+      }
       set((st) => ({
         tabs: patchTab(st.tabs, tabId, (t) => ({
           ...t,
           effort: ok ? effort : t.effort,
+          ultracode: ok && effort !== 'xhigh' ? false : t.ultracode,
           items: ok
             ? [...t.items, { kind: 'info', id: nextId(), text: `Effort: ${effort}`, tone: 'normal' }]
+            : t.items
+        }))
+      }))
+    },
+
+    setUltracode: async (tabId, enabled) => {
+      const tab = get().tabs.find((t) => t.id === tabId)
+      if (!tab || tab.ultracode === enabled) return
+      if (enabled && !supportsUltracode(tab.model)) return
+      const ok = tab.sdkSessionId ? await window.api.setUltracode(tabId, enabled) : true
+      set((st) => ({
+        tabs: patchTab(st.tabs, tabId, (t) => ({
+          ...t,
+          ultracode: ok ? enabled : t.ultracode,
+          // ultracode implies xhigh effort
+          effort: ok && enabled ? 'xhigh' : t.effort,
+          items: ok
+            ? [
+                ...t.items,
+                {
+                  kind: 'info',
+                  id: nextId(),
+                  text: enabled ? 'Ultracode: włączony (xhigh + workflows)' : 'Ultracode: wyłączony',
+                  tone: 'normal'
+                }
+              ]
             : t.items
         }))
       }))

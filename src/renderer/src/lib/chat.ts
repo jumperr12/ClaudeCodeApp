@@ -33,6 +33,8 @@ export interface TabState {
   model: string
   permissionMode: PermissionMode
   effort: EffortLevel
+  /** Ultracode (xhigh + workflows) — session-scoped, resets on new session. */
+  ultracode: boolean
   status: 'empty' | 'connecting' | 'idle' | 'working'
   items: ChatItem[]
   sdkSessionId?: string
@@ -62,6 +64,7 @@ export function createTab(
     model,
     permissionMode,
     effort,
+    ultracode: false,
     status: 'empty',
     items: [],
     costUsd: 0,
