@@ -99,21 +99,28 @@ export default function EffortControl({ tab }: { tab: TabState }): React.JSX.Ele
                       : 'linear-gradient(to right, transparent 40%, color-mix(in srgb, var(--color-accent) 22%, transparent))'
                   }}
                 />
-                {/* segment dividers */}
-                {stops.map((_, i) =>
-                  i === 0 ? null : (
+                {/* stop dots (interior positions) */}
+                {stops.map((s, i) => {
+                  if (i === 0 || i === stops.length - 1) return null
+                  const ultraDot = s.id === 'ultracode'
+                  return (
                     <div
-                      key={i}
-                      className="absolute top-1 bottom-1 w-px bg-border"
-                      style={{ left: `${(i / (stops.length - 1)) * 100}%` }}
+                      key={s.id}
+                      className="absolute top-1/2 w-[3px] h-[3px] rounded-full"
+                      style={{
+                        left: `${(i / (stops.length - 1)) * 100}%`,
+                        transform: 'translate(-50%,-50%)',
+                        background: ultraDot ? ULTRA : 'var(--color-muted)',
+                        opacity: 0.65
+                      }}
                     />
                   )
-                )}
+                })}
                 {/* ultracode end marker */}
                 {ultraOk && !isUltra && (
                   <div
-                    className="absolute top-1/2 -translate-y-1/2 right-1.5 w-1.5 h-1.5 rounded-full"
-                    style={{ background: ULTRA }}
+                    className="absolute top-1/2 -translate-y-1/2 right-2 w-[7px] h-[7px] rounded-full"
+                    style={{ background: ULTRA, boxShadow: `0 0 6px ${ULTRA}` }}
                   />
                 )}
               </div>
