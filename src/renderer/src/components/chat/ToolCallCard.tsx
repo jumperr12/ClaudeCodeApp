@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import type { ChatItem } from '@/lib/chat'
+import Icon from '../Icon'
 
 type ToolItem = Extract<ChatItem, { kind: 'tool' }>
 
@@ -41,41 +42,54 @@ export default function ToolCallCard({ item }: { item: ToolItem }): React.JSX.El
   const [expanded, setExpanded] = useState(false)
   const [showFullResult, setShowFullResult] = useState(false)
 
-  const dotColor = !item.done
-    ? 'text-accent'
+  const stateColor = !item.done
+    ? 'var(--color-accent)'
     : item.isError
-      ? 'text-bad'
-      : 'text-good'
+      ? 'var(--color-bad)'
+      : 'var(--color-good)'
+  const dotClass = !item.done ? 'text-accent' : item.isError ? 'text-bad' : 'text-good'
 
   const result = item.result ?? ''
   const truncated = !showFullResult && result.length > MAX_RESULT_CHARS
 
   return (
-    <div className="my-0.5">
+    <div
+      className="my-1.5 rounded-md border border-border bg-panel2/60 overflow-hidden"
+      style={{ borderLeft: `3px solid ${stateColor}` }}
+    >
       <button
-        className="flex items-baseline gap-1.5 text-left w-full hover:bg-panel rounded px-1 -mx-1"
+        className="flex items-center gap-2 text-left w-full px-2.5 py-1.5 hover:bg-panel2 transition-colors"
         onClick={() => setExpanded((e) => !e)}
       >
         {!item.done ? (
           <motion.span
-            className={dotColor}
+            className={`${dotClass} inline-flex shrink-0`}
             animate={{ opacity: [1, 0.25, 1] }}
             transition={{ repeat: Infinity, duration: 1.1 }}
           >
-            ⏺
+            <Icon name="dot" size={9} />
           </motion.span>
         ) : (
-          <span className={dotColor}>⏺</span>
+          <span className={`${dotClass} inline-flex shrink-0`}>
+            <Icon name={item.isError ? 'x' : 'check'} size={12} />
+          </span>
         )}
-        <span className="text-bright font-semibold">{item.name}</span>
-        <span className="text-muted truncate">({summarize(item.name, item.input)})</span>
-        {item.done && item.isError && <span className="text-bad text-[11px]">błąd</span>}
+        <span className="text-bright font-semibold shrink-0">{item.name}</span>
+        <span className="text-muted truncate text-[12.5px]">{summarize(item.name, item.input)}</span>
+        {item.done && item.isError && (
+          <span className="text-bad text-[11px] shrink-0 uppercase tracking-wide">błąd</span>
+        )}
+        <Icon
+          name="chevronDown"
+          size={13}
+          className={`ml-auto shrink-0 text-dim transition-transform ${expanded ? 'rotate-180' : ''}`}
+        />
       </button>
 
       {expanded && (
-        <div className="ml-4 mt-1 mb-1 border-l-2 border-border pl-3 space-y-1.5">
+        <div className="px-2.5 pb-2 pt-1 space-y-1.5 border-t border-border bg-bg/40">
           {item.input && (
-            <pre className="text-[11.5px] text-muted whitespace-pre-wrap break-all max-h-48 overflow-y-auto bg-panel rounded p-2">
+            <pre className="text-[11.5px] text-fg whitespace-pre-wrap break-all max-h-48 overflow-y-auto bg-bg border border-border rounded p-2">
               {item.name === 'Bash' && typeof item.input.command === 'string'
                 ? item.input.command
                 : JSON.stringify(item.input, null, 2)}
@@ -83,7 +97,7 @@ export default function ToolCallCard({ item }: { item: ToolItem }): React.JSX.El
           )}
           {item.done && result && (
             <pre
-              className={`text-[11.5px] whitespace-pre-wrap break-all max-h-80 overflow-y-auto bg-panel rounded p-2 ${
+              className={`text-[11.5px] whitespace-pre-wrap break-all max-h-80 overflow-y-auto bg-bg border border-border rounded p-2 ${
                 item.isError ? 'text-bad' : 'text-fg'
               }`}
             >
