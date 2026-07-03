@@ -225,73 +225,58 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
       await window.api.setPermissionMode(tabId, mode)
     },
 
-    setModel: async (tabId, model) => {
+    // These update state synchronously (optimistic) BEFORE the async SDK call.
+    // Doing the await first let the controlled slider fight the user and read a
+    // stale guard, spamming the chat with duplicate change lines.
+    setModel: (tabId, model) => {
       const tab = get().tabs.find((t) => t.id === tabId)
-      if (!tab || tab.model === model) return
-      // If a session is already live, ask the SDK to switch; otherwise just record
-      // the choice so the next createSession/openFolder uses it.
-      const ok = tab.sdkSessionId ? await window.api.setModel(tabId, model) : true
-      // ultracode requires an xhigh-capable model — turn it off if switching away
-      if (ok && tab.ultracode && !supportsUltracode(model)) {
-        if (tab.sdkSessionId) void window.api.setUltracode(tabId, false)
-      }
+      if (!tab || tab.model === model) return Promise.resolve()
+      const dropUltra = !supportsUltracode(model)
       set((st) => ({
         tabs: patchTab(st.tabs, tabId, (t) => ({
           ...t,
-          model: ok ? model : t.model,
-          ultracode: ok && !supportsUltracode(model) ? false : t.ultracode,
-          items: ok
-            ? [...t.items, { kind: 'info', id: nextId(), text: `Model: ${model}`, tone: 'normal' }]
-            : [...t.items, { kind: 'info', id: nextId(), text: `Failed to change model to ${model}`, tone: 'error' }]
+          model,
+          ultracode: dropUltra ? false : t.ultracode
         }))
       }))
+      if (tab.sdkSessionId) {
+        void window.api.setModel(tabId, model)
+        if (dropUltra && tab.ultracode) void window.api.setUltracode(tabId, false)
+      }
+      return Promise.resolve()
     },
 
-    setEffort: async (tabId, effort) => {
+    setEffort: (tabId, effort) => {
       const tab = get().tabs.find((t) => t.id === tabId)
-      if (!tab || tab.effort === effort) return
-      // Live change if a session exists; otherwise it applies at next createSession.
-      const ok = tab.sdkSessionId ? await window.api.setEffort(tabId, effort) : true
-      // moving effort off xhigh turns ultracode off (it's an xhigh mode)
-      if (ok && tab.ultracode && effort !== 'xhigh' && tab.sdkSessionId) {
-        void window.api.setUltracode(tabId, false)
-      }
+      if (!tab || tab.effort === effort) return Promise.resolve()
+      const dropUltra = effort !== 'xhigh'
       set((st) => ({
         tabs: patchTab(st.tabs, tabId, (t) => ({
           ...t,
-          effort: ok ? effort : t.effort,
-          ultracode: ok && effort !== 'xhigh' ? false : t.ultracode,
-          items: ok
-            ? [...t.items, { kind: 'info', id: nextId(), text: `Effort: ${effort}`, tone: 'normal' }]
-            : t.items
+          effort,
+          ultracode: dropUltra ? false : t.ultracode
         }))
       }))
+      if (tab.sdkSessionId) {
+        void window.api.setEffort(tabId, effort)
+        if (dropUltra && tab.ultracode) void window.api.setUltracode(tabId, false)
+      }
+      return Promise.resolve()
     },
 
-    setUltracode: async (tabId, enabled) => {
+    setUltracode: (tabId, enabled) => {
       const tab = get().tabs.find((t) => t.id === tabId)
-      if (!tab || tab.ultracode === enabled) return
-      if (enabled && !supportsUltracode(tab.model)) return
-      const ok = tab.sdkSessionId ? await window.api.setUltracode(tabId, enabled) : true
+      if (!tab || tab.ultracode === enabled) return Promise.resolve()
+      if (enabled && !supportsUltracode(tab.model)) return Promise.resolve()
       set((st) => ({
         tabs: patchTab(st.tabs, tabId, (t) => ({
           ...t,
-          ultracode: ok ? enabled : t.ultracode,
-          // ultracode implies xhigh effort
-          effort: ok && enabled ? 'xhigh' : t.effort,
-          items: ok
-            ? [
-                ...t.items,
-                {
-                  kind: 'info',
-                  id: nextId(),
-                  text: enabled ? 'Ultracode: on (xhigh + workflows)' : 'Ultracode: off',
-                  tone: 'normal'
-                }
-              ]
-            : t.items
+          ultracode: enabled,
+          effort: enabled ? 'xhigh' : t.effort // ultracode implies xhigh
         }))
       }))
+      if (tab.sdkSessionId) void window.api.setUltracode(tabId, enabled)
+      return Promise.resolve()
     },
 
     respondPermission: async (tabId, decision) => {
