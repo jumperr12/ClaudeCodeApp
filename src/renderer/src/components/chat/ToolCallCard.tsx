@@ -28,7 +28,7 @@ function summarize(name: string, input: Record<string, unknown> | null): string 
     case 'WebSearch':
       return str(input.query).slice(0, 70)
     case 'TodoWrite':
-      return 'aktualizacja listy zadań'
+      return 'todo list update'
     default: {
       const firstString = Object.values(input).find((v) => typeof v === 'string')
       return typeof firstString === 'string' ? firstString.slice(0, 60) : ''
@@ -77,7 +77,7 @@ export default function ToolCallCard({ item }: { item: ToolItem }): React.JSX.El
         <span className="text-bright font-semibold shrink-0">{item.name}</span>
         <span className="text-muted truncate text-[12.5px]">{summarize(item.name, item.input)}</span>
         {item.done && item.isError && (
-          <span className="text-bad text-[11px] shrink-0 uppercase tracking-wide">błąd</span>
+          <span className="text-bad text-[11px] shrink-0 uppercase tracking-wide">error</span>
         )}
         <Icon
           name="chevronDown"
@@ -106,7 +106,7 @@ export default function ToolCallCard({ item }: { item: ToolItem }): React.JSX.El
           )}
           {truncated && (
             <button className="text-accent text-[11px] hover:underline" onClick={() => setShowFullResult(true)}>
-              pokaż całość ({Math.round(result.length / 1000)}k znaków)
+              show all ({Math.round(result.length / 1000)}k chars)
             </button>
           )}
         </div>

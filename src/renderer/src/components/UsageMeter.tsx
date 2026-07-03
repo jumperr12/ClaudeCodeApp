@@ -7,10 +7,10 @@ import { useUiStore } from '@/stores/ui'
 function resetIn(iso: string | null | undefined): string {
   if (!iso) return ''
   const ms = new Date(iso).getTime() - Date.now()
-  if (!Number.isFinite(ms) || ms <= 0) return 'reset wkrótce'
+  if (!Number.isFinite(ms) || ms <= 0) return 'resets soon'
   const h = Math.floor(ms / 3_600_000)
   const m = Math.floor((ms % 3_600_000) / 60_000)
-  return `reset za ${h > 0 ? `${h}h ` : ''}${m}m`
+  return `resets in ${h > 0 ? `${h}h ` : ''}${m}m`
 }
 
 function barColor(pct: number): string {
@@ -65,11 +65,11 @@ export default function UsageMeter(): React.JSX.Element | null {
         onClick={() => setUi({ dashboardOpen: true })}
         className="flex items-center gap-1.5 text-dim hover:text-fg transition-colors"
         title={
-          `Limit planu ${plan?.subscriptionType ?? ''} — okno 5h: ${pct}% (${resetIn(five.resetsAt)})` +
+          `${plan?.subscriptionType ?? ''} plan limit — 5h window: ${pct}% (${resetIn(five.resetsAt)})` +
           (seven && seven.utilization !== null
-            ? `\nOkno 7 dni: ${Math.round(seven.utilization)}% (${resetIn(seven.resetsAt)})`
+            ? `\n7-day window: ${Math.round(seven.utilization)}% (${resetIn(seven.resetsAt)})`
             : '') +
-          '\nDane z planu claude.ai (jak /usage w Claude Code).'
+          '\nFrom your claude.ai plan (same as /usage in Claude Code).'
         }
       >
         <Icon name="gauge" size={13} style={{ color: barColor(pct) }} />
@@ -93,7 +93,7 @@ export default function UsageMeter(): React.JSX.Element | null {
     <button
       onClick={() => setUi({ dashboardOpen: true })}
       className="flex items-center gap-1.5 text-dim hover:text-fg transition-colors"
-      title={`Zużycie tej aplikacji z ostatnich 5h (lokalny szacunek): $${cost.toFixed(4)} · ${turns} tur.\nLimit planu niedostępny w tym trybie (klucz API lub brak sesji).`}
+      title={`This app's usage over the last 5h (local estimate): $${cost.toFixed(4)} · ${turns} turns.\nPlan limit unavailable in this mode (API key or no live session).`}
     >
       <Icon name="gauge" size={13} className="text-accent/80" />
       <span className="tabular-nums">5h</span>

@@ -10,7 +10,7 @@ export default function SuperpromptModal(): React.JSX.Element {
   const { output, generating, error, start, cancel, reset } = useSuperpromptStore()
   const setUi = useUiStore((s) => s.set)
   const [description, setDescription] = useState('')
-  const [language, setLanguage] = useState<'pl' | 'en'>('pl')
+  const [language, setLanguage] = useState<'pl' | 'en'>('en')
   const [detail, setDetail] = useState<'concise' | 'detailed'>('detailed')
   const [copied, setCopied] = useState(false)
 
@@ -37,14 +37,14 @@ export default function SuperpromptModal(): React.JSX.Element {
 
   return (
     <Modal
-      title={<><Icon name="sparkles" size={16} className="text-accent" /> Superprompt — wygeneruj profesjonalny prompt</>}
+      title={<><Icon name="sparkles" size={16} className="text-accent" /> Superprompt — generate a professional prompt</>}
       onClose={close}
       width="820px"
     >
       <div className="space-y-3">
         <div>
           <div className="text-muted text-[12px] mb-1">
-            Opisz swoimi słowami, do czego chcesz użyć Claude Code:
+            Describe in your own words what you want to use Claude Code for:
           </div>
           <textarea
             autoFocus
@@ -54,32 +54,32 @@ export default function SuperpromptModal(): React.JSX.Element {
               if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) generate()
             }}
             rows={4}
-            placeholder="np. chcę zbudować aplikację do śledzenia wydatków w React z wykresami i eksportem do CSV"
+            placeholder="e.g. I want to build an expense-tracking app in React with charts and CSV export"
             className="w-full bg-panel2 border border-border rounded p-3 outline-none text-bright placeholder:text-dim resize-y focus:border-accent"
           />
         </div>
 
         <div className="flex items-center gap-4 text-[12px]">
           <label className="flex items-center gap-1.5">
-            <span className="text-muted">Język:</span>
+            <span className="text-muted">Language:</span>
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value as 'pl' | 'en')}
               className="bg-panel2 border border-border rounded px-2 py-1 text-fg outline-none"
             >
-              <option value="pl">polski</option>
-              <option value="en">angielski</option>
+              <option value="en">English</option>
+              <option value="pl">Polish</option>
             </select>
           </label>
           <label className="flex items-center gap-1.5">
-            <span className="text-muted">Szczegółowość:</span>
+            <span className="text-muted">Detail:</span>
             <select
               value={detail}
               onChange={(e) => setDetail(e.target.value as 'concise' | 'detailed')}
               className="bg-panel2 border border-border rounded px-2 py-1 text-fg outline-none"
             >
-              <option value="detailed">szczegółowy</option>
-              <option value="concise">zwięzły</option>
+              <option value="detailed">detailed</option>
+              <option value="concise">concise</option>
             </select>
           </label>
           <button
@@ -89,15 +89,15 @@ export default function SuperpromptModal(): React.JSX.Element {
           >
             {generating ? (
               <>
-                <span className="w-2.5 h-2.5 bg-bg rounded-[1px]" /> Zatrzymaj
+                <span className="w-2.5 h-2.5 bg-bg rounded-[1px]" /> Stop
               </>
             ) : output ? (
               <>
-                <Icon name="refresh" size={14} /> Regeneruj
+                <Icon name="refresh" size={14} /> Regenerate
               </>
             ) : (
               <>
-                <Icon name="sparkles" size={14} /> Generuj (Ctrl+Enter)
+                <Icon name="sparkles" size={14} /> Generate (Ctrl+Enter)
               </>
             )}
           </button>
@@ -106,28 +106,28 @@ export default function SuperpromptModal(): React.JSX.Element {
         {(output || generating || error) && (
           <div>
             <div className="text-muted text-[12px] mb-1 flex items-center gap-2">
-              Wygenerowany prompt:
-              {generating && <span className="shimmer">piszę…</span>}
+              Generated prompt:
+              {generating && <span className="shimmer">writing…</span>}
             </div>
             <pre className="bg-panel2 border border-border rounded p-3 whitespace-pre-wrap text-[12.5px] text-fg max-h-[38vh] overflow-y-auto leading-relaxed">
               {output}
               {generating && <span className="caret" />}
             </pre>
-            {error && <div className="text-bad text-[12px] mt-1">Błąd: {error}</div>}
+            {error && <div className="text-bad text-[12px] mt-1">Error: {error}</div>}
             <div className="flex gap-2 mt-2">
               <button
                 onClick={insert}
                 disabled={!output || generating}
                 className="bg-accent hover:bg-accent-soft disabled:opacity-40 text-bg font-bold rounded px-4 py-1.5 flex items-center gap-1.5"
               >
-                <Icon name="insert" size={14} /> Wstaw do czatu
+                <Icon name="insert" size={14} /> Insert into chat
               </button>
               <button
                 onClick={copy}
                 disabled={!output}
                 className="border border-border hover:border-accent disabled:opacity-40 text-fg rounded px-4 py-1.5 flex items-center gap-1.5"
               >
-                <Icon name={copied ? 'check' : 'copy'} size={14} /> {copied ? 'Skopiowano' : 'Kopiuj'}
+                <Icon name={copied ? 'check' : 'copy'} size={14} /> {copied ? 'Copied' : 'Copy'}
               </button>
             </div>
           </div>

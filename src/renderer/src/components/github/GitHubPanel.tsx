@@ -45,7 +45,7 @@ export default function GitHubPanel({ tab }: { tab: TabState }): React.JSX.Eleme
         <span className="text-bright font-bold text-[12px]">GitHub</span>
         <button
           className="ml-auto text-dim hover:text-fg inline-flex"
-          title="Odśwież"
+          title="Refresh"
           onClick={() => tab.cwd && void window.api.gitRefresh(tab.id)}
         >
           <Icon name="refresh" size={14} />
@@ -53,13 +53,13 @@ export default function GitHubPanel({ tab }: { tab: TabState }): React.JSX.Eleme
       </div>
 
       {!tab.cwd ? (
-        <div className="p-3 text-dim text-[12px]">Otwórz folder projektu…</div>
+        <div className="p-3 text-dim text-[12px]">Open a project folder…</div>
       ) : !status ? (
         <div className="p-3 text-dim text-[12px]">
-          <span className="shimmer">Czytanie repozytorium…</span>
+          <span className="shimmer">Reading repository…</span>
         </div>
       ) : !status.isRepo ? (
-        <div className="p-3 text-dim text-[12px]">To nie jest repozytorium git.</div>
+        <div className="p-3 text-dim text-[12px]">Not a git repository.</div>
       ) : (
         <div className="flex-1 overflow-y-auto text-[12px]">
           {/* branch */}
@@ -71,13 +71,13 @@ export default function GitHubPanel({ tab }: { tab: TabState }): React.JSX.Eleme
             {(status.ahead ?? 0) + (status.behind ?? 0) > 0 && (
               <div className="text-muted mt-0.5 flex items-center gap-2">
                 {status.ahead ? (
-                  <span className="flex items-center gap-0.5" title="do wypchnięcia">
+                  <span className="flex items-center gap-0.5" title="ahead (to push)">
                     <Icon name="arrowUp" size={11} />
                     {status.ahead}
                   </span>
                 ) : null}
                 {status.behind ? (
-                  <span className="flex items-center gap-0.5" title="do pobrania">
+                  <span className="flex items-center gap-0.5" title="behind (to pull)">
                     <Icon name="arrowDown" size={11} />
                     {status.behind}
                   </span>
@@ -93,7 +93,7 @@ export default function GitHubPanel({ tab }: { tab: TabState }): React.JSX.Eleme
               <button
                 className="text-left w-full hover:bg-panel2 rounded p-1 -m-1"
                 onClick={() => status.pr && void window.api.openExternal(status.pr.url)}
-                title="Otwórz PR w przeglądarce"
+                title="Open PR in browser"
               >
                 <div className="flex items-center gap-1.5">
                   <Icon
@@ -107,18 +107,18 @@ export default function GitHubPanel({ tab }: { tab: TabState }): React.JSX.Eleme
                 <div className="text-fg truncate">{status.pr.title}</div>
               </button>
             ) : (
-              <div className="text-dim">brak PR dla tej gałęzi</div>
+              <div className="text-dim">no PR for this branch</div>
             )}
           </div>
 
           {/* changes */}
           <div className="px-3 py-2 border-b border-border">
             <div className="text-dim uppercase text-[10px] tracking-wider mb-1">
-              Zmiany {status.files.length > 0 && `(${status.files.length})`}
+              Changes {status.files.length > 0 && `(${status.files.length})`}
             </div>
             {status.files.length === 0 ? (
               <div className="text-dim flex items-center gap-1.5">
-                <Icon name="check" size={12} className="text-good" /> czysto
+                <Icon name="check" size={12} className="text-good" /> clean
               </div>
             ) : (
               status.files.map((f) => {
@@ -128,7 +128,7 @@ export default function GitHubPanel({ tab }: { tab: TabState }): React.JSX.Eleme
                     key={f.path}
                     className="flex items-center gap-2 w-full text-left hover:bg-panel2 rounded px-1 py-0.5"
                     onClick={() => void openFileDiff(f.path)}
-                    title="Pokaż diff vs HEAD"
+                    title="Show diff vs HEAD"
                   >
                     <span className={`${badge.cls} font-bold w-3`}>{badge.label}</span>
                     <span className="text-fg truncate">{f.path}</span>
@@ -140,16 +140,16 @@ export default function GitHubPanel({ tab }: { tab: TabState }): React.JSX.Eleme
 
           {/* commits */}
           <div className="px-3 py-2">
-            <div className="text-dim uppercase text-[10px] tracking-wider mb-1">Ostatnie commity</div>
+            <div className="text-dim uppercase text-[10px] tracking-wider mb-1">Recent commits</div>
             {status.commits.length === 0 ? (
-              <div className="text-dim">brak commitów</div>
+              <div className="text-dim">no commits</div>
             ) : (
               status.commits.map((c) => (
                 <div key={c.hash} className="py-0.5">
                   <span className="text-accent">{c.hash}</span>{' '}
                   <span className="text-fg">{c.message.split('\n')[0].slice(0, 60)}</span>
                   <div className="text-dim text-[10.5px]">
-                    {c.author} · {new Date(c.date).toLocaleString('pl-PL')}
+                    {c.author} · {new Date(c.date).toLocaleString('en-US')}
                   </div>
                 </div>
               ))

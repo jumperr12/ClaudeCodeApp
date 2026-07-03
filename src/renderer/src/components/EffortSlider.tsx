@@ -18,7 +18,7 @@ export default function EffortSlider({
   const idx = Math.max(0, EFFORT_LEVELS.findIndex((e) => e.id === value))
 
   return (
-    <div className="flex items-center gap-1.5" title={`Poziom wysiłku (reasoning effort): ${value}`}>
+    <div className="flex items-center gap-1.5" title={`Reasoning effort: ${value}`}>
       {showLabel && <span className="text-muted">effort</span>}
       <input
         type="range"

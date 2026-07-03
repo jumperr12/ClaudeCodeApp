@@ -44,15 +44,15 @@ export default function HistoryModal(): React.JSX.Element {
   }
 
   return (
-    <Modal title={<><Icon name="history" size={16} /> Historia sesji</>} onClose={close} width="760px">
+    <Modal title={<><Icon name="history" size={16} /> Session history</>} onClose={close} width="760px">
       {!cwd ? (
         <div className="text-center py-6">
-          <div className="text-muted mb-3">Wybierz folder projektu, aby zobaczyć jego sesje.</div>
+          <div className="text-muted mb-3">Pick a project folder to see its sessions.</div>
           <button
             onClick={() => void pickOther()}
             className="bg-accent hover:bg-accent-soft text-bg font-bold rounded px-4 py-1.5"
           >
-            Wybierz folder…
+            Pick folder…
           </button>
         </div>
       ) : (
@@ -62,11 +62,11 @@ export default function HistoryModal(): React.JSX.Element {
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Szukaj w treści sesji…"
+              placeholder="Search session content…"
               className="flex-1 bg-panel2 border border-border rounded px-3 py-1.5 outline-none text-bright placeholder:text-dim focus:border-accent"
             />
             <button onClick={() => void pickOther()} className="text-muted hover:text-fg text-[12px]">
-              inny folder…
+              other folder…
             </button>
           </div>
           <div className="text-dim text-[11px] truncate flex items-center gap-1.5">
@@ -74,10 +74,10 @@ export default function HistoryModal(): React.JSX.Element {
           </div>
           {entries === null ? (
             <div className="text-dim py-4">
-              <span className="shimmer">Czytanie historii…</span>
+              <span className="shimmer">Reading history…</span>
             </div>
           ) : entries.length === 0 ? (
-            <div className="text-dim py-4">Brak zapisanych sesji dla tego projektu.</div>
+            <div className="text-dim py-4">No saved sessions for this project.</div>
           ) : (
             <div className="space-y-1 max-h-[50vh] overflow-y-auto">
               {entries.map((e) => (
@@ -85,13 +85,13 @@ export default function HistoryModal(): React.JSX.Element {
                   key={e.sessionId}
                   onClick={() => void resume(e)}
                   className="w-full text-left border border-border hover:border-accent rounded p-2.5 bg-panel2 group"
-                  title="Kliknij, aby wznowić tę sesję w nowej zakładce"
+                  title="Click to resume this session in a new tab"
                 >
                   <div className="flex items-center gap-2 text-[11px] text-dim">
-                    <span>{new Date(e.mtime).toLocaleString('pl-PL')}</span>
+                    <span>{new Date(e.mtime).toLocaleString('en-US')}</span>
                     <span>· {(e.sizeBytes / 1024).toFixed(0)} KB</span>
                     <span className="ml-auto text-accent opacity-0 group-hover:opacity-100 flex items-center gap-1">
-                      <Icon name="refresh" size={11} /> wznów
+                      <Icon name="refresh" size={11} /> resume
                     </span>
                   </div>
                   <div className="text-fg text-[12.5px] mt-0.5 line-clamp-2">{e.firstPrompt}</div>
@@ -100,7 +100,7 @@ export default function HistoryModal(): React.JSX.Element {
             </div>
           )}
           <div className="text-dim text-[11px]">
-            Sesje są współdzielone z CLI — sesję zaczętą w terminalu wznowisz tutaj i odwrotnie.
+            Sessions are shared with the CLI — a session started in the terminal can be resumed here and vice versa.
           </div>
         </div>
       )}

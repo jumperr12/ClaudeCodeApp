@@ -26,7 +26,7 @@ export class PermissionBroker {
 
   /** Deny everything still pending for a closing session. */
   denyAll(): void {
-    for (const [, resolve] of this.pending) resolve({ kind: 'deny', message: 'Sesja zamknięta' })
+    for (const [, resolve] of this.pending) resolve({ kind: 'deny', message: 'Session closed' })
     this.pending.clear()
   }
 }

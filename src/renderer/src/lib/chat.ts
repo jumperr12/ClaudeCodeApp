@@ -59,7 +59,7 @@ export function createTab(
 ): TabState {
   return {
     id,
-    title: 'Nowa sesja',
+    title: 'New session',
     cwd: null,
     model,
     permissionMode,
@@ -131,7 +131,7 @@ export function reduceSdkMessage(tab: TabState, message: Obj): TabState {
         status: 'idle',
         items: [
           ...tab.items,
-          { kind: 'info', id: nextId(), text: `Błąd sesji: ${message.error}`, tone: 'error' }
+          { kind: 'info', id: nextId(), text: `Session error: ${message.error}`, tone: 'error' }
         ]
       }
     case 'app_closed':
@@ -154,7 +154,7 @@ function reduceSystem(tab: TabState, message: Obj): TabState {
         {
           kind: 'info',
           id: nextId(),
-          text: `Połączono · ${model} · ${message.cwd ?? tab.cwd ?? ''}`,
+          text: `Connected · ${model} · ${message.cwd ?? tab.cwd ?? ''}`,
           tone: 'normal'
         }
       ]
@@ -165,7 +165,7 @@ function reduceSystem(tab: TabState, message: Obj): TabState {
       ...tab,
       items: [
         ...tab.items,
-        { kind: 'info', id: nextId(), text: 'Kontekst został skompaktowany', tone: 'normal' }
+        { kind: 'info', id: nextId(), text: 'Context was compacted', tone: 'normal' }
       ]
     }
   }

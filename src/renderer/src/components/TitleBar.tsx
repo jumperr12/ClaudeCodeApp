@@ -19,20 +19,20 @@ export default function TitleBar(): React.JSX.Element {
       </div>
       <SessionTabs />
       <div className="ml-auto flex items-center gap-1 mr-[140px]">
-        <button className={btn} title="Historia sesji" onClick={() => setUi({ historyOpen: true })}>
+        <button className={btn} title="Session history" onClick={() => setUi({ historyOpen: true })}>
           <Icon name="history" size={16} />
         </button>
-        <button className={btn} title="Dashboard kosztów" onClick={() => setUi({ dashboardOpen: true })}>
+        <button className={btn} title="Cost dashboard" onClick={() => setUi({ dashboardOpen: true })}>
           <Icon name="chart" size={16} />
         </button>
         <button
           className={`${btn} ${gitPanelOpen ? 'text-accent' : ''}`}
-          title="Panel GitHub"
+          title="GitHub panel"
           onClick={toggleGitPanel}
         >
           <Icon name="git" size={16} />
         </button>
-        <button className={btn} title="Ustawienia" onClick={() => setUi({ settingsOpen: true })}>
+        <button className={btn} title="Settings" onClick={() => setUi({ settingsOpen: true })}>
           <Icon name="settings" size={16} />
         </button>
       </div>

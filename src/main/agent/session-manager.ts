@@ -166,7 +166,7 @@ class AgentSession {
     if (decision.kind === 'deny') {
       return {
         behavior: 'deny',
-        message: decision.message?.trim() || 'Użytkownik odrzucił tę operację.'
+        message: decision.message?.trim() || 'User denied this operation.'
       }
     }
     if (decision.kind === 'allowAlways') {

@@ -43,7 +43,7 @@ function MessageItemInner({ item }: { item: ChatItem }): React.JSX.Element | nul
         <div className="my-1 text-[11.5px] text-dim flex items-center gap-2">
           <Icon name={item.ok ? 'check' : 'x'} size={13} className={item.ok ? 'text-good' : 'text-bad'} />
           <span>
-            {item.ok ? 'Zakończono' : 'Zakończono z błędem'}
+            {item.ok ? 'Done' : 'Finished with error'}
             {item.durationMs !== undefined ? ` · ${(item.durationMs / 1000).toFixed(1)}s` : ''}
             {item.costUsd !== undefined ? ` · $${item.costUsd.toFixed(4)}` : ''}
           </span>

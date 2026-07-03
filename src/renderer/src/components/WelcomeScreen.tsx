@@ -24,18 +24,18 @@ export default function WelcomeScreen({ tab }: { tab: TabState }): React.JSX.Ele
       </motion.div>
       <div className="text-bright text-xl font-bold">Claude Code Desktop</div>
       <div className="text-muted text-sm max-w-md text-center">
-        Wybierz folder projektu, aby rozpocząć sesję. Wszystkie funkcje Claude Code — z lepszym
-        widokiem kodu, panelem GitHuba i superpromptami.
+        Pick a project folder to start a session. All of Claude Code's features — with a better code
+        view, a GitHub panel and superprompts.
       </div>
       <button
         onClick={() => void pick()}
         className="bg-accent hover:bg-accent-soft text-bg font-bold rounded px-5 py-2 transition-colors"
       >
-        Otwórz folder projektu…
+        Open project folder…
       </button>
       {lastCwd && (
         <button onClick={() => void openFolder(tab.id, lastCwd)} className="text-muted hover:text-fg text-[12px]">
-          Ostatnio: <span className="text-accent">{lastCwd}</span>
+          Recently: <span className="text-accent">{lastCwd}</span>
         </button>
       )}
     </div>

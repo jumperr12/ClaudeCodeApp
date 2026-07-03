@@ -61,15 +61,15 @@ export default function SettingsModal(): React.JSX.Element {
   )
 
   return (
-    <Modal title={<><Icon name="settings" size={16} /> Ustawienia</>} onClose={close} width="560px">
+    <Modal title={<><Icon name="settings" size={16} /> Settings</>} onClose={close} width="560px">
       <div className="space-y-5">
         <div>
-          <div className={label}>Uwierzytelnianie</div>
+          <div className={label}>Authentication</div>
           <div className="flex gap-2">
             {(
               [
-                ['subscription', 'Subskrypcja Claude (logowanie z CLI)'],
-                ['apiKey', 'Klucz API Anthropic']
+                ['subscription', 'Claude subscription (CLI login)'],
+                ['apiKey', 'Anthropic API key']
               ] as const
             ).map(([mode, text]) => (
               <button
@@ -87,8 +87,8 @@ export default function SettingsModal(): React.JSX.Element {
           </div>
           {settings.authMode === 'subscription' && (
             <div className="text-dim text-[11px] mt-1.5">
-              Używa logowania Claude Code (uruchom <code className="text-accent">claude /login</code> w
-              terminalu, jeśli jeszcze nie jesteś zalogowany).
+              Uses your Claude Code login (run <code className="text-accent">claude /login</code> in a
+              terminal if you're not signed in yet).
             </div>
           )}
           {settings.authMode === 'apiKey' && (
@@ -98,21 +98,21 @@ export default function SettingsModal(): React.JSX.Element {
                   type="password"
                   value={keyDraft}
                   onChange={(e) => setKeyDraft(e.target.value)}
-                  placeholder={settings.hasApiKey ? '•••••• (klucz zapisany — wpisz nowy, aby zmienić)' : 'sk-ant-…'}
+                  placeholder={settings.hasApiKey ? '•••••• (key saved — type a new one to change)' : 'sk-ant-…'}
                   className="flex-1 bg-panel2 border border-border rounded px-3 py-1.5 outline-none text-bright placeholder:text-dim focus:border-accent"
                 />
                 <button
                   onClick={() => void saveKey()}
                   className="bg-accent hover:bg-accent-soft text-bg font-bold rounded px-3 flex items-center justify-center min-w-[64px]"
                 >
-                  {keySaved ? <Icon name="check" size={16} /> : 'Zapisz'}
+                  {keySaved ? <Icon name="check" size={16} /> : 'Save'}
                 </button>
               </div>
               <div className="text-dim text-[11px]">
-                Klucz jest szyfrowany systemowo (DPAPI) — nigdy nie trafia na dysk jawnym tekstem.
+                The key is encrypted by the OS (DPAPI) — never written to disk in plain text.
                 {settings.hasApiKey && (
                   <button className="text-bad ml-2 hover:underline" onClick={() => void setApiKey(null)}>
-                    usuń klucz
+                    remove key
                   </button>
                 )}
               </div>
@@ -121,7 +121,7 @@ export default function SettingsModal(): React.JSX.Element {
         </div>
 
         <div>
-          <div className={label}>Wersje modeli (domyślnie najnowsza; suwak w prawo = starsza/legacy)</div>
+          <div className={label}>Model versions (newest by default; slide right = older/legacy)</div>
           <div className="space-y-2.5">
             {MODEL_FAMILIES.map((fam) => {
               const currentId = settings.familyVersions[fam.family]
@@ -142,7 +142,7 @@ export default function SettingsModal(): React.JSX.Element {
                   </div>
                   {!single && (
                     <div className="flex items-center gap-2 mt-1.5">
-                      <span className="text-dim text-[10px] w-16">najnowsza</span>
+                      <span className="text-dim text-[10px] w-16">newest</span>
                       <input
                         type="range"
                         min={0}
@@ -153,7 +153,7 @@ export default function SettingsModal(): React.JSX.Element {
                         className="flex-1"
                         style={{ accentColor: 'var(--color-accent)' }}
                       />
-                      <span className="text-dim text-[10px] w-10 text-right">starsza</span>
+                      <span className="text-dim text-[10px] w-10 text-right">older</span>
                     </div>
                   )}
                 </div>
@@ -163,7 +163,7 @@ export default function SettingsModal(): React.JSX.Element {
         </div>
 
         <div>
-          <div className={label}>Domyślny model agenta (nowe sesje)</div>
+          <div className={label}>Default agent model (new sessions)</div>
           <FamilyChips value={settings.modelFamily} onPick={(f) => void update({ modelFamily: f })} />
         </div>
 
@@ -174,7 +174,7 @@ export default function SettingsModal(): React.JSX.Element {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <div className={label}>Domyślny tryb uprawnień</div>
+            <div className={label}>Default permission mode</div>
             <select
               value={settings.defaultPermissionMode}
               onChange={(e) => void update({ defaultPermissionMode: e.target.value as PermissionMode })}
@@ -188,7 +188,7 @@ export default function SettingsModal(): React.JSX.Element {
             </select>
           </div>
           <div>
-            <div className={label}>Domyślny effort</div>
+            <div className={label}>Default effort</div>
             <div className="bg-panel2 border border-border rounded px-3 py-2">
               <EffortSlider
                 value={settings.defaultEffort}

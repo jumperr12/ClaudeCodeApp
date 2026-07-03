@@ -48,7 +48,7 @@ export default function EffortControl({ tab }: { tab: TabState }): React.JSX.Ele
           isUltra ? 'font-semibold' : 'text-muted hover:text-fg'
         }`}
         style={isUltra ? { color: ULTRA_SOFT } : undefined}
-        title="Effort — od Faster do Smarter (prawy skraj: Ultracode)"
+        title="Effort — from Faster to Smarter (far right: Ultracode)"
       >
         {isUltra ? <Icon name="sparkles" size={12} /> : <Icon name="gauge" size={12} />}
         <span className="whitespace-nowrap">{isUltra ? 'Ultracode' : `effort: ${current.label}`}</span>
@@ -72,8 +72,8 @@ export default function EffortControl({ tab }: { tab: TabState }): React.JSX.Ele
                 size={14}
                 className="ml-auto text-dim hover:text-fg"
                 title={
-                  'Wyższy effort = model myśli dłużej i dokładniej (Smarter), niższy = szybciej (Faster).\n' +
-                  'Ultracode (tylko Opus 4.7/4.8, Fable 5): xhigh + dynamiczna orkiestracja workflow.'
+                  'Higher effort = the model thinks longer and more thoroughly (Smarter); lower = faster (Faster).\n' +
+                  'Ultracode (Opus 4.7/4.8, Fable 5 only): xhigh + dynamic workflow orchestration.'
                 }
               />
             </div>

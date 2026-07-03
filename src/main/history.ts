@@ -28,7 +28,7 @@ function parseMeta(filePath: string, size: number): SessionMeta {
       content = readFileSync(filePath, 'utf8')
     }
   } catch {
-    return { firstPrompt: '(brak podglądu)', tokens: 0, turns: 0 }
+    return { firstPrompt: '(no preview)', tokens: 0, turns: 0 }
   }
 
   let firstPrompt: string | undefined
@@ -90,7 +90,7 @@ function parseMeta(filePath: string, size: number): SessionMeta {
   // (often hundreds per session), so summing it wildly overcounts real usage.
   const tokens = input + output + cacheCreate
   return {
-    firstPrompt: (firstPrompt ?? '(brak podglądu)').slice(0, 300),
+    firstPrompt: (firstPrompt ?? '(no preview)').slice(0, 300),
     cwd,
     model,
     tokens,
@@ -227,7 +227,7 @@ function extractFirstPrompt(filePath: string): string {
   } catch {
     // unreadable file — ignore
   }
-  return '(brak podglądu)'
+  return '(no preview)'
 }
 
 export function listSessions(cwd: string): HistoryEntry[] {

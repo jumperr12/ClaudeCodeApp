@@ -35,7 +35,7 @@ export default function ChatView({ tab }: { tab: TabState }): React.JSX.Element 
         <button
           onClick={() => useUiStore.getState().set({ superpromptOpen: true })}
           className="absolute top-3 right-4 z-10 flex items-center gap-1.5 text-[12px] text-muted hover:text-accent border border-border hover:border-accent rounded-full px-3 py-1 bg-panel/70 backdrop-blur transition-colors"
-          title="Wygeneruj profesjonalny prompt (superprompt)"
+          title="Generate a professional prompt (superprompt)"
         >
           <Icon name="sparkles" size={14} className="text-accent" /> Superprompt
         </button>

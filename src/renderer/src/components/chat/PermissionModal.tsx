@@ -44,8 +44,8 @@ export default function PermissionModal({ tab, request }: Props): React.JSX.Elem
   const title =
     request.title ??
     (isEdit
-      ? `Claude chce zmodyfikować plik ${request.diff?.filePath}`
-      : `Claude chce użyć narzędzia ${request.toolName}`)
+      ? `Claude wants to modify ${request.diff?.filePath}`
+      : `Claude wants to use the ${request.toolName} tool`)
 
   const inputPreview =
     request.toolName === 'Bash' && typeof request.input.command === 'string'
@@ -88,7 +88,7 @@ export default function PermissionModal({ tab, request }: Props): React.JSX.Elem
                 if (e.key === 'Enter') deny()
                 if (e.key === 'Escape') setShowDenyInput(false)
               }}
-              placeholder="Powód odrzucenia dla Claude (opcjonalnie) — Enter aby odrzucić"
+              placeholder="Reason for denial (optional) — Enter to deny"
               className="w-full bg-panel2 border border-border rounded px-3 py-2 outline-none text-bright placeholder:text-dim"
             />
           </div>
@@ -99,19 +99,19 @@ export default function PermissionModal({ tab, request }: Props): React.JSX.Elem
             onClick={allow}
             className="bg-accent hover:bg-accent-soft text-bg font-bold rounded px-4 py-1.5 flex items-center gap-1.5"
           >
-            <Icon name="check" size={15} /> Zezwól <span className="opacity-70 font-normal">(Enter)</span>
+            <Icon name="check" size={15} /> Allow <span className="opacity-70 font-normal">(Enter)</span>
           </button>
           <button
             onClick={allowAlways}
             className="border border-border hover:border-accent text-fg rounded px-4 py-1.5"
           >
-            Zawsze zezwalaj <span className="text-dim">(A)</span>
+            Always allow <span className="text-dim">(A)</span>
           </button>
           <button
             onClick={() => (showDenyInput ? deny() : setShowDenyInput(true))}
             className="ml-auto border border-bad/50 hover:bg-bad/20 text-bad rounded px-4 py-1.5 flex items-center gap-1.5"
           >
-            <Icon name="x" size={15} /> Odrzuć <span className="text-dim">(Esc)</span>
+            <Icon name="x" size={15} /> Deny <span className="text-dim">(Esc)</span>
           </button>
         </div>
       </motion.div>

@@ -43,7 +43,7 @@ export default function SessionTabs(): React.JSX.Element {
                 e.stopPropagation()
                 closeTab(tab.id)
               }}
-              title="Zamknij sesję"
+              title="Close session"
             >
               <Icon name="x" size={12} />
             </button>
@@ -53,7 +53,7 @@ export default function SessionTabs(): React.JSX.Element {
       <button
         className="text-muted hover:text-accent px-2 text-[15px]"
         onClick={() => addTab()}
-        title="Nowa sesja"
+        title="New session"
       >
         +
       </button>

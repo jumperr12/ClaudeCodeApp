@@ -207,13 +207,13 @@ export const MODEL_FAMILIES: ModelFamilyDef[] = [
   {
     family: 'fable',
     label: 'Fable',
-    note: 'najtrudniejsze zadania (drożej, wolniej)',
+    note: 'hardest tasks (pricier, slower)',
     versions: [{ id: 'claude-fable-5', label: 'Fable 5' }]
   },
   {
     family: 'opus',
     label: 'Opus',
-    note: 'najlepszy do kodu i długich zadań',
+    note: 'best for code and long tasks',
     versions: [
       { id: 'claude-opus-4-8', label: 'Opus 4.8' },
       { id: 'claude-opus-4-7', label: 'Opus 4.7', legacy: true },
@@ -225,7 +225,7 @@ export const MODEL_FAMILIES: ModelFamilyDef[] = [
   {
     family: 'sonnet',
     label: 'Sonnet',
-    note: 'szybki i zbalansowany',
+    note: 'fast and balanced',
     versions: [
       { id: 'claude-sonnet-4-6', label: 'Sonnet 4.6' },
       { id: 'claude-sonnet-4-5', label: 'Sonnet 4.5', legacy: true },
@@ -235,7 +235,7 @@ export const MODEL_FAMILIES: ModelFamilyDef[] = [
   {
     family: 'haiku',
     label: 'Haiku',
-    note: 'najszybszy, do prostych zadań',
+    note: 'fastest, for simple tasks',
     versions: [
       { id: 'claude-haiku-4-5', label: 'Haiku 4.5' },
       { id: 'claude-3-haiku-20240307', label: 'Haiku 3', legacy: true }
@@ -290,8 +290,8 @@ export function defaultFamilyVersions(): Record<ModelFamily, string> {
 }
 
 export const PERMISSION_MODES: { id: PermissionMode; label: string }[] = [
-  { id: 'default', label: 'pytaj o zgodę' },
-  { id: 'acceptEdits', label: 'auto-akceptuj edycje' },
-  { id: 'plan', label: 'tryb planowania' },
-  { id: 'bypassPermissions', label: 'bez pytań (ostrożnie!)' }
+  { id: 'default', label: 'ask for approval' },
+  { id: 'acceptEdits', label: 'auto-accept edits' },
+  { id: 'plan', label: 'plan mode' },
+  { id: 'bypassPermissions', label: 'no prompts (careful!)' }
 ]

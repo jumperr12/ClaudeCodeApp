@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { Spark } from '../Icon'
 import type { ChatItem, TabState } from '@/lib/chat'
 
-const GENERIC = ['Pracuję', 'Przetwarzam', 'Kombinuję', 'Działam']
+const GENERIC = ['Working', 'Processing', 'Crunching', 'On it']
 
 function basename(p: string): string {
   return p.split(/[\\/]/).filter(Boolean).pop() ?? p
@@ -23,8 +23,8 @@ function currentActivity(items: ChatItem[]): string | null {
       if (typeof inp.pattern === 'string') return `${it.name}: ${inp.pattern}`
       return it.name
     }
-    if (it.kind === 'thinking' && it.streaming) return 'Myślę'
-    if (it.kind === 'text' && it.streaming) return 'Generuję odpowiedź'
+    if (it.kind === 'thinking' && it.streaming) return 'Thinking'
+    if (it.kind === 'text' && it.streaming) return 'Writing response'
     if (it.kind === 'text' || it.kind === 'user' || it.kind === 'result') return null
   }
   return null
@@ -46,7 +46,7 @@ export default function WorkingIndicator({ tab }: { tab: TabState }): React.JSX.
   }, [])
 
   const connecting = tab.status === 'connecting'
-  const activity = connecting ? 'Łączenie z Claude Code' : currentActivity(tab.items) ?? GENERIC[genIdx]
+  const activity = connecting ? 'Connecting to Claude Code' : currentActivity(tab.items) ?? GENERIC[genIdx]
 
   return (
     <div className="border-t border-border bg-panel/60 px-4 py-1.5">
@@ -66,7 +66,7 @@ export default function WorkingIndicator({ tab }: { tab: TabState }): React.JSX.
           <span className="text-dim">…</span>
         </span>
         <span className="text-dim tabular-nums">{elapsed}s</span>
-        <span className="ml-auto text-dim text-[11px]">Esc aby przerwać</span>
+        <span className="ml-auto text-dim text-[11px]">Esc to interrupt</span>
       </div>
       {/* indeterminate progress bar */}
       <div className="relative h-[3px] mt-1.5 w-full bg-panel2 rounded overflow-hidden">

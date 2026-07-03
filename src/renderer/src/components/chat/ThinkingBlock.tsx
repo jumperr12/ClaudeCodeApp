@@ -3,14 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Spark } from '../Icon'
 
 const STATUS_WORDS = [
-  'Myślę',
-  'Analizuję',
-  'Kombinuję',
-  'Rozważam',
-  'Dedukuję',
-  'Główkuję',
-  'Przetwarzam',
-  'Rozgryzam'
+  'Thinking',
+  'Analyzing',
+  'Pondering',
+  'Considering',
+  'Reasoning',
+  'Figuring it out',
+  'Processing',
+  'Working it out'
 ]
 
 interface Props {
@@ -49,7 +49,7 @@ export default function ThinkingBlock({ text, streaming, startedAt, durationMs }
       <button
         className="flex items-center gap-2 text-left w-full group"
         onClick={() => setExpanded((e) => !e)}
-        title={expanded ? 'Zwiń myślenie' : 'Rozwiń myślenie'}
+        title={expanded ? 'Collapse thinking' : 'Expand thinking'}
       >
         <motion.span
           className="text-accent inline-flex"
@@ -65,11 +65,11 @@ export default function ThinkingBlock({ text, streaming, startedAt, durationMs }
         {streaming ? (
           <span className="shimmer font-semibold">{STATUS_WORDS[wordIdx]}…</span>
         ) : (
-          <span className="text-muted">Przemyślane</span>
+          <span className="text-muted">Thought</span>
         )}
         <span className="text-dim text-[11px]">
           {seconds > 0 ? `${seconds}s` : ''}
-          {hasText ? ` · ${expanded ? 'zwiń' : 'pokaż tok myślenia'}` : ''}
+          {hasText ? ` · ${expanded ? 'collapse' : 'show reasoning'}` : ''}
         </span>
       </button>
 

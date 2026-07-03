@@ -11,12 +11,12 @@ const fmtTokens = (n?: number): string =>
 function relDate(ms: number): string {
   const d = new Date(ms)
   const now = new Date()
-  const time = d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
+  const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   const yest = new Date(now)
   yest.setDate(now.getDate() - 1)
-  if (d.toDateString() === now.toDateString()) return `Dzisiaj ${time}`
-  if (d.toDateString() === yest.toDateString()) return `Wczoraj ${time}`
-  return `${d.toLocaleDateString('pl-PL')} ${time}`
+  if (d.toDateString() === now.toDateString()) return `Today ${time}`
+  if (d.toDateString() === yest.toDateString()) return `Yesterday ${time}`
+  return `${d.toLocaleDateString('en-US')} ${time}`
 }
 
 export default function HomeScreen({ tab }: { tab: TabState }): React.JSX.Element {
@@ -61,7 +61,7 @@ export default function HomeScreen({ tab }: { tab: TabState }): React.JSX.Elemen
         <Spark size={22} className="text-accent" />
         <div>
           <div className="text-bright text-lg font-bold leading-tight">Claude Code Desktop</div>
-          <div className="text-dim text-[12px]">Twoje sesje — kliknij, aby wznowić</div>
+          <div className="text-dim text-[12px]">Your sessions — click to resume</div>
         </div>
         <div className="ml-auto flex items-center gap-2">
           {lastCwd && (
@@ -70,14 +70,14 @@ export default function HomeScreen({ tab }: { tab: TabState }): React.JSX.Elemen
               className="text-muted hover:text-fg text-[12px] border border-border hover:border-accent rounded px-3 py-1.5 max-w-[240px] truncate"
               title={lastCwd}
             >
-              Ostatni: {lastCwd.split(/[\\/]/).filter(Boolean).pop()}
+              Last: {lastCwd.split(/[\\/]/).filter(Boolean).pop()}
             </button>
           )}
           <button
             onClick={() => void pick()}
             className="bg-accent hover:bg-accent-soft text-bg font-bold rounded px-4 py-1.5 flex items-center gap-1.5"
           >
-            <Icon name="folder" size={15} /> Nowa sesja
+            <Icon name="folder" size={15} /> New session
           </button>
         </div>
       </div>
@@ -87,7 +87,7 @@ export default function HomeScreen({ tab }: { tab: TabState }): React.JSX.Elemen
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Szukaj w sesjach (treść, projekt, model)…"
+          placeholder="Search sessions (content, project, model)…"
           className="w-full bg-panel2 border border-border rounded px-3 py-1.5 outline-none text-bright placeholder:text-dim focus:border-accent text-[13px]"
         />
       </div>
@@ -97,13 +97,13 @@ export default function HomeScreen({ tab }: { tab: TabState }): React.JSX.Elemen
         <div className="max-w-[900px] mx-auto">
           {sessions === null ? (
             <div className="text-dim py-8 text-center">
-              <span className="shimmer">Wczytywanie sesji…</span>
+              <span className="shimmer">Loading sessions…</span>
             </div>
           ) : filtered.length === 0 ? (
             <div className="text-dim py-8 text-center">
               {sessions.length === 0
-                ? 'Brak zapisanych sesji. Otwórz projekt, aby zacząć.'
-                : 'Brak wyników dla tego zapytania.'}
+                ? 'No saved sessions. Open a project to get started.'
+                : 'No results for this query.'}
             </div>
           ) : (
             <div className="space-y-1.5">
@@ -113,7 +113,7 @@ export default function HomeScreen({ tab }: { tab: TabState }): React.JSX.Elemen
                   onClick={() => resume(e)}
                   disabled={!e.cwd}
                   className="w-full text-left border border-border hover:border-accent rounded-lg p-3 bg-panel/60 hover:bg-panel disabled:opacity-50 group transition-colors"
-                  title={e.cwd ? `Wznów w: ${e.cwd}` : 'Brak ścieżki projektu w transkrypcie'}
+                  title={e.cwd ? `Resume in: ${e.cwd}` : 'No project path in transcript'}
                 >
                   <div className="text-fg text-[13.5px] line-clamp-1 group-hover:text-bright">{e.firstPrompt}</div>
                   <div className="flex items-center gap-2 mt-1.5 text-[11px] text-dim flex-wrap">
@@ -130,21 +130,21 @@ export default function HomeScreen({ tab }: { tab: TabState }): React.JSX.Elemen
                     )}
                     <span
                       className="flex items-center gap-1"
-                      title="Przetworzone tokeny: wejście + wygenerowane + zapis cache. Odczyty cache (ten sam kontekst czytany na każdym z setek zapytań) są pominięte, bo zawyżają sumę wielokrotnie."
+                      title="Processed tokens: input + generated + cache writes. Cache reads (the same context re-read on every one of hundreds of requests) are excluded, since they inflate the total many times over."
                     >
-                      <Icon name="gauge" size={11} /> {fmtTokens(e.tokens)} tok.
+                      <Icon name="gauge" size={11} /> {fmtTokens(e.tokens)} tok
                     </span>
-                    {e.turns !== undefined && e.turns > 0 && <span>· {e.turns} tur</span>}
+                    {e.turns !== undefined && e.turns > 0 && <span>· {e.turns} turns</span>}
                     {e.costUsd !== undefined && e.costUsd >= 0.0005 && (
                       <span
                         className="text-muted"
-                        title="Szacunek wg cennika API (z odczytami cache ×0.1). Na subskrypcji wliczone w plan — nie płacisz per token."
+                        title="Estimate at API list prices (cache reads ×0.1). On a subscription it's included in the plan — you don't pay per token."
                       >
                         ~${e.costUsd < 1 ? e.costUsd.toFixed(3) : e.costUsd.toFixed(2)} <span className="text-dim">(API)</span>
                       </span>
                     )}
                     <span className="ml-auto text-accent opacity-0 group-hover:opacity-100 flex items-center gap-1">
-                      <Icon name="refresh" size={11} /> wznów
+                      <Icon name="refresh" size={11} /> resume
                     </span>
                   </div>
                 </button>

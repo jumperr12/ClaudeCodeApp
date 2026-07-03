@@ -114,7 +114,7 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
           title,
           status: 'connecting',
           items: resume
-            ? [{ kind: 'info', id: nextId(), text: `Wczytywanie historii sesji ${resume.slice(0, 8)}…`, tone: 'normal' }]
+            ? [{ kind: 'info', id: nextId(), text: `Loading session history ${resume.slice(0, 8)}…`, tone: 'normal' }]
             : []
         }))
       }))
@@ -138,10 +138,10 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
           }
           const items: ChatItem[] = [
             ...(lines.length >= 800
-              ? [{ kind: 'info' as const, id: nextId(), text: 'Pokazano najnowsze wiadomości tej sesji.', tone: 'normal' as const }]
+              ? [{ kind: 'info' as const, id: nextId(), text: 'Showing the most recent messages of this session.', tone: 'normal' as const }]
               : []),
             ...scratch.items,
-            { kind: 'info' as const, id: nextId(), text: '— wznowiono; kontynuuj poniżej —', tone: 'normal' as const }
+            { kind: 'info' as const, id: nextId(), text: '— resumed; continue below —', tone: 'normal' as const }
           ]
           set((st) => ({
             tabs: patchTab(st.tabs, tabId, (t) => ({ ...t, items, contextTokens: scratch.contextTokens }))
@@ -186,7 +186,7 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
                 {
                   kind: 'info',
                   id: nextId(),
-                  text: ok ? `Model zmieniony na ${model}` : `Nie udało się zmienić modelu na ${model}`,
+                  text: ok ? `Model changed to ${model}` : `Failed to change model to ${model}`,
                   tone: ok ? 'normal' : 'error'
                 }
               ]
@@ -242,7 +242,7 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
           ultracode: ok && !supportsUltracode(model) ? false : t.ultracode,
           items: ok
             ? [...t.items, { kind: 'info', id: nextId(), text: `Model: ${model}`, tone: 'normal' }]
-            : [...t.items, { kind: 'info', id: nextId(), text: `Nie udało się zmienić modelu na ${model}`, tone: 'error' }]
+            : [...t.items, { kind: 'info', id: nextId(), text: `Failed to change model to ${model}`, tone: 'error' }]
         }))
       }))
     },
@@ -285,7 +285,7 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
                 {
                   kind: 'info',
                   id: nextId(),
-                  text: enabled ? 'Ultracode: włączony (xhigh + workflows)' : 'Ultracode: wyłączony',
+                  text: enabled ? 'Ultracode: on (xhigh + workflows)' : 'Ultracode: off',
                   tone: 'normal'
                 }
               ]

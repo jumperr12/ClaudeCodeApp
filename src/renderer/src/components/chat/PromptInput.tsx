@@ -67,21 +67,21 @@ export default function PromptInput({ tab }: { tab: TabState }): React.JSX.Eleme
           onKeyDown={onKeyDown}
           rows={1}
           spellCheck={false}
-          placeholder={working ? 'Claude pracuje… (Esc aby przerwać)' : 'Napisz do Claude… (/clear, /model)'}
+          placeholder={working ? 'Claude is working… (Esc to interrupt)' : 'Message Claude… (/clear, /model)'}
           className="flex-1 bg-transparent resize-none outline-none text-bright placeholder:text-dim pt-1.5 leading-relaxed"
         />
       </div>
       <div className="flex items-center gap-4 mt-1 text-[11px] text-dim">
         <button
           className="hover:text-fg flex items-center gap-1"
-          title="Shift+Tab — zmień tryb uprawnień"
+          title="Shift+Tab — change permission mode"
           onClick={() => void cycleMode(tab.id)}
         >
           <Icon name="chevrons" size={12} /> {modeLabel}
         </button>
         <span>{modelLabel(tab.model)}</span>
         <span className="ml-auto">
-          Enter wyślij · Shift+Enter nowa linia · Esc przerwij · Shift+Tab tryb
+          Enter to send · Shift+Enter newline · Esc interrupt · Shift+Tab mode
         </span>
       </div>
     </div>

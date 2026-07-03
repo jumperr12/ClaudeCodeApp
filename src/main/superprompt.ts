@@ -7,47 +7,47 @@ import type { SuperpromptRequest } from '@shared/types'
 import type { SettingsService } from './settings'
 
 function metaPrompt(language: 'pl' | 'en', detail: 'concise' | 'detailed'): string {
-  const lang = language === 'pl' ? 'polskim' : 'angielskim'
+  const lang = language === 'pl' ? 'Polish' : 'English'
   const detailNote =
     detail === 'detailed'
-      ? 'Prompt ma być szczegółowy: rozbuduj wymagania, kryteria akceptacji i ograniczenia.'
-      : 'Prompt ma być zwięzły: maksymalnie ~250 słów, tylko najistotniejsze punkty.'
-  return `Jesteś ekspertem od inżynierii promptów dla agentów kodujących (Claude Code).
-Użytkownik opisze, do czego chce użyć Claude Code. Twoim zadaniem jest przekształcić ten opis
-w jeden, gotowy do wklejenia prompt w języku ${lang}.
+      ? 'The prompt should be detailed: expand the requirements, acceptance criteria and constraints.'
+      : 'The prompt should be concise: at most ~250 words, only the most important points.'
+  return `You are an expert prompt engineer for coding agents (Claude Code).
+The user will describe what they want to use Claude Code for. Your job is to turn that description
+into a single, ready-to-paste prompt written in ${lang}.
 
-Struktura wygenerowanego prompta:
-1. Persona — zacznij od zdania w stylu "Jesteś doświadczonym inżynierem [odpowiednia specjalizacja]…"
-   dobierając specjalizację do zadania (frontend, backend, DevOps, dane, mobile itd.).
-2. Kontekst — krótki opis projektu/sytuacji (wykorzystaj informacje o projekcie, jeśli podano).
-3. Zadanie — co dokładnie ma zostać zrobione, sformułowane jako cel, nie lista kroków.
-4. Wymagania — konkretne, weryfikowalne punkty.
-5. Kryteria akceptacji — po czym poznać, że zadanie jest skończone (testy, uruchomienie, zachowanie).
-6. Ograniczenia — czego nie robić (np. nie zmieniać niezwiązanych plików, nie dodawać zbędnych zależności).
+Structure of the generated prompt:
+1. Persona — start with a sentence like "You are an experienced [relevant specialty] engineer…",
+   picking the specialty to match the task (frontend, backend, DevOps, data, mobile, etc.).
+2. Context — a short description of the project/situation (use the project info if provided).
+3. Task — exactly what should be done, phrased as a goal, not a list of steps.
+4. Requirements — concrete, verifiable points.
+5. Acceptance criteria — how to know the task is done (tests, running it, behavior).
+6. Constraints — what not to do (e.g. don't touch unrelated files, don't add needless dependencies).
 
 ${detailNote}
 
-Zasady:
-- Zwróć WYŁĄCZNIE treść prompta — bez wstępów, komentarzy, bloków kodu markdown wokół całości ani wyjaśnień.
-- Nie wymyślaj technologii, których użytkownik nie zasugerował, chyba że wybór jest oczywisty — wtedy go zaproponuj wprost.
-- Pisz konkretnie; unikaj ogólników typu "zadbaj o jakość kodu".`
+Rules:
+- Return ONLY the prompt content — no preamble, comments, surrounding markdown code fences, or explanations.
+- Don't invent technologies the user didn't suggest, unless the choice is obvious — then propose it explicitly.
+- Be specific; avoid generic filler like "make sure the code is high quality".`
 }
 
 function projectContext(cwd?: string): string {
   if (!cwd) return ''
-  const lines: string[] = [`\n\nInformacje o projekcie użytkownika (katalog: ${basename(cwd)}):`]
+  const lines: string[] = [`\n\nUser's project info (directory: ${basename(cwd)}):`]
   try {
     const pkgPath = join(cwd, 'package.json')
     if (existsSync(pkgPath)) {
       const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'))
       const deps = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies }).slice(0, 25)
-      lines.push(`- projekt Node.js "${pkg.name ?? '?'}", zależności: ${deps.join(', ')}`)
+      lines.push(`- Node.js project "${pkg.name ?? '?'}", dependencies: ${deps.join(', ')}`)
     }
     for (const [file, label] of [
-      ['pyproject.toml', 'projekt Python (pyproject.toml)'],
-      ['requirements.txt', 'projekt Python (requirements.txt)'],
-      ['Cargo.toml', 'projekt Rust'],
-      ['go.mod', 'projekt Go']
+      ['pyproject.toml', 'Python project (pyproject.toml)'],
+      ['requirements.txt', 'Python project (requirements.txt)'],
+      ['Cargo.toml', 'Rust project'],
+      ['go.mod', 'Go project']
     ] as const) {
       if (existsSync(join(cwd, file))) lines.push(`- ${label}`)
     }
@@ -74,7 +74,7 @@ export class SuperpromptService {
     const abort = new AbortController()
     this.active.set(req.requestId, abort)
     const system = metaPrompt(req.language, req.detail)
-    const userContent = `Opis użytkownika:\n${req.description}${projectContext(req.cwd)}`
+    const userContent = `User's description:\n${req.description}${projectContext(req.cwd)}`
     const settings = this.settings.getPublic()
     const apiKey = settings.authMode === 'apiKey' ? this.settings.getApiKey() : null
 
@@ -135,7 +135,7 @@ export class SuperpromptService {
         includePartialMessages: true,
         abortController: abort,
         env: this.settings.agentEnv(),
-        canUseTool: async () => ({ behavior: 'deny', message: 'Narzędzia są wyłączone.' })
+        canUseTool: async () => ({ behavior: 'deny', message: 'Tools are disabled.' })
       }
     })
     for await (const message of q as AsyncIterable<Record<string, unknown>>) {

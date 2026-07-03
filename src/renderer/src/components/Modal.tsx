@@ -30,7 +30,7 @@ export default function Modal({ title, onClose, width = '640px', children }: Pro
       >
         <div className="px-4 py-3 border-b border-border flex items-center">
           <div className="text-bright font-semibold flex items-center gap-2">{title}</div>
-          <button className="ml-auto text-dim hover:text-fg px-1" onClick={onClose} title="Zamknij (Esc)">
+          <button className="ml-auto text-dim hover:text-fg px-1" onClick={onClose} title="Close (Esc)">
             <Icon name="x" size={16} />
           </button>
         </div>
