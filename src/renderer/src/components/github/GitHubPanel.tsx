@@ -149,7 +149,7 @@ export default function GitHubPanel({ tab }: { tab: TabState }): React.JSX.Eleme
             ) : (
               status.commits.map((c) => (
                 <div key={c.hash} className="py-0.5">
-                  <span className="text-accent">{c.hash}</span>{' '}
+                  <span style={{ color: '#58a6ff', textShadow: '0 0 6px rgba(88,166,255,0.45)' }}>{c.hash}</span>{' '}
                   <span className="text-fg">{c.message.split('\n')[0].slice(0, 60)}</span>
                   <div className="text-dim text-[10.5px]">
                     {c.author} · {new Date(c.date).toLocaleString('en-US')}
