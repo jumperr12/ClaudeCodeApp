@@ -134,9 +134,9 @@ export default function HomeScreen({ tab }: { tab: TabState }): React.JSX.Elemen
                     {
                       // Per-session accent goes here later (set --sc per card); the
                       // gradient + hover glow tint themselves toward it automatically.
-                      // Default is a muted teal — a classic complement to terracotta, so
+                      // Default is a dusty cyan — a fresh complement to terracotta, so
                       // cards read distinct against the warm background without clashing.
-                      '--sc': '#3e9b8e',
+                      '--sc': '#5fa8ad',
                       '--sc-shadow': 'color-mix(in srgb, var(--sc) 42%, transparent)',
                       background:
                         'linear-gradient(150deg, color-mix(in srgb, var(--sc) 15%, #232220) 0%, #1c1b19 52%, #161513 100%)'
