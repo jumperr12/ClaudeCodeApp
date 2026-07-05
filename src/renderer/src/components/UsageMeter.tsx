@@ -75,7 +75,7 @@ export default function UsageMeter(): React.JSX.Element | null {
       >
         <Icon
           name="gauge"
-          size={13}
+          size={16}
           style={{ color: barColor(pct), filter: `drop-shadow(0 0 2.5px ${barColor(pct)}55)` }}
         />
         <span className="tabular-nums">5h</span>
@@ -103,7 +103,7 @@ export default function UsageMeter(): React.JSX.Element | null {
       className="flex items-center gap-1.5 text-dim hover:text-fg transition-colors"
       title={`This app's usage over the last 5h (local estimate): $${cost.toFixed(4)} · ${turns} turns.\nPlan limit unavailable in this mode (API key or no live session).`}
     >
-      <Icon name="gauge" size={13} className="text-accent/80" />
+      <Icon name="gauge" size={16} className="text-accent/80" />
       <span className="tabular-nums">5h</span>
       <svg width="46" height="14" viewBox="0 0 46 14" className="overflow-visible">
         {buckets.map((v, i) => {
