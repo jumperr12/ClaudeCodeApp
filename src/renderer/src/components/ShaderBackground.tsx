@@ -18,7 +18,7 @@ const BASE: Partial<SGProps> = {
   animate: 'on',
   grain: 'on',
   grainBlending: 0.38,
-  brightness: 0.85,
+  brightness: 1.05,
   cDistance: 3.6,
   cAzimuthAngle: 180,
   cPolarAngle: 80,
@@ -32,11 +32,11 @@ const BASE: Partial<SGProps> = {
 }
 
 const PRESETS: Record<Exclude<BgPreset, 'off'>, Partial<SGProps>> = {
-  // Muted, closer to the app's dark palette so the gradient tints rather than pops.
-  ember: { ...BASE, type: 'waterPlane', color1: '#161512', color2: '#2f2620', color3: '#7c4a34', uSpeed: 0.08, uStrength: 1.3, uDensity: 1.3 },
-  dusk: { ...BASE, type: 'plane', color1: '#131210', color2: '#1e1c18', color3: '#4c3a30', uSpeed: 0.06, uStrength: 1.0, uDensity: 1.1 },
-  molten: { ...BASE, type: 'sphere', color1: '#100f0d', color2: '#2c2019', color3: '#6e4230', uSpeed: 0.1, uStrength: 0.9, uDensity: 1.4, cDistance: 3.2 },
-  charcoal: { ...BASE, type: 'waterPlane', color1: '#161512', color2: '#22201b', color3: '#302c26', uSpeed: 0.05, uStrength: 1.1, uDensity: 1.2 }
+  // Warm but not neon — visible tint that still harmonizes with the dark UI.
+  ember: { ...BASE, type: 'waterPlane', color1: '#161512', color2: '#5a3a2a', color3: '#b4643f', uSpeed: 0.08, uStrength: 1.3, uDensity: 1.3 },
+  dusk: { ...BASE, type: 'plane', color1: '#131210', color2: '#26231d', color3: '#7a4c38', uSpeed: 0.06, uStrength: 1.0, uDensity: 1.1 },
+  molten: { ...BASE, type: 'sphere', color1: '#100f0d', color2: '#4a2f22', color3: '#c06a42', uSpeed: 0.1, uStrength: 0.9, uDensity: 1.4, cDistance: 3.2 },
+  charcoal: { ...BASE, type: 'waterPlane', color1: '#161512', color2: '#2e2b25', color3: '#463f36', uSpeed: 0.05, uStrength: 1.1, uDensity: 1.2 }
 }
 
 /**
@@ -45,7 +45,7 @@ const PRESETS: Record<Exclude<BgPreset, 'off'>, Partial<SGProps>> = {
  */
 export default function ShaderBackground({
   preset,
-  opacity = 0.45
+  opacity = 0.7
 }: {
   preset: BgPreset
   opacity?: number
@@ -63,7 +63,7 @@ export default function ShaderBackground({
         className="absolute inset-0"
         style={{
           background:
-            'radial-gradient(130% 100% at 50% 38%, rgba(22,21,18,0.15), rgba(22,21,18,0.6) 55%, rgba(22,21,18,0.92) 100%)'
+            'radial-gradient(130% 100% at 50% 34%, rgba(22,21,18,0.04), rgba(22,21,18,0.42) 60%, rgba(22,21,18,0.85) 100%)'
         }}
       />
     </div>
