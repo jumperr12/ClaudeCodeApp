@@ -129,7 +129,11 @@ export default function HomeScreen({ tab }: { tab: TabState }): React.JSX.Elemen
                   key={e.sessionId}
                   onClick={() => resume(e)}
                   disabled={!e.cwd}
-                  className="w-full text-left border border-border hover:border-accent rounded-lg p-3 bg-panel/60 hover:bg-panel disabled:opacity-50 group transition-colors"
+                  className="w-full text-left border border-border hover:border-accent rounded-lg p-3 disabled:opacity-50 group transition-all hover:brightness-[1.08] hover:shadow-[0_3px_20px_-8px_rgba(217,119,87,0.4)]"
+                  style={{
+                    background:
+                      'linear-gradient(150deg, rgba(38,35,29,0.72) 0%, rgba(26,24,20,0.58) 55%, rgba(22,21,18,0.5) 100%)'
+                  }}
                   title={e.cwd ? `Resume in: ${e.cwd}` : 'No project path in transcript'}
                 >
                   <div className="text-fg text-[13.5px] line-clamp-1 group-hover:text-bright">{e.firstPrompt}</div>
