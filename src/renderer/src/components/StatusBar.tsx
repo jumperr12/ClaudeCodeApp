@@ -64,10 +64,11 @@ export default function StatusBar({ tab }: { tab: TabState }): React.JSX.Element
           <span>context</span>
           <div className="w-24 h-1.5 bg-panel2 rounded overflow-hidden">
             <div
-              className={`h-full transition-all ${
-                contextPct > 85 ? 'bg-bad' : contextPct > 60 ? 'bg-warn' : 'bg-good'
-              }`}
-              style={{ width: `${contextPct}%` }}
+              className="h-full transition-all"
+              style={{
+                width: `${contextPct}%`,
+                background: contextPct > 85 ? '#f0483e' : contextPct > 60 ? '#f5b820' : '#35c94a'
+              }}
             />
           </div>
           <span>{contextPct}%</span>

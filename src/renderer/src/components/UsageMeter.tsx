@@ -14,7 +14,8 @@ function resetIn(iso: string | null | undefined): string {
 }
 
 function barColor(pct: number): string {
-  return pct > 85 ? 'var(--color-bad)' : pct > 60 ? 'var(--color-warn)' : 'var(--color-good)'
+  // saturated thresholds (kept local so the rest of the UI stays muted)
+  return pct > 85 ? '#f0483e' : pct > 60 ? '#f5b820' : '#35c94a'
 }
 
 /**
