@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import TitleBar from './components/TitleBar'
 import LiquidSparkIntro from './components/LiquidSparkIntro'
+import AppBackground from './components/AppBackground'
 import StatusBar from './components/StatusBar'
 import ChatView from './components/chat/ChatView'
 import GitHubPanel from './components/github/GitHubPanel'
@@ -60,7 +61,8 @@ export default function App(): React.JSX.Element {
   if (!activeTab) return <div className="h-full" />
 
   return (
-    <div className="h-full flex flex-col bg-bg">
+    <div className="h-full flex flex-col">
+      <AppBackground />
       {intro && <LiquidSparkIntro onDone={() => setIntro(false)} />}
       <TitleBar />
       <div className="flex-1 flex min-h-0">
