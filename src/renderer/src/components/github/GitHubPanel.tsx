@@ -74,12 +74,7 @@ export default function GitHubPanel({ tab }: { tab: TabState }): React.JSX.Eleme
                 className="shrink-0"
                 style={{ color: '#3fb950', filter: 'drop-shadow(0 0 5px rgba(63,185,80,0.45))' }}
               />
-              <span
-                className="font-semibold truncate"
-                style={{ color: '#3fb950', textShadow: '0 0 6px rgba(63,185,80,0.4)' }}
-              >
-                {status.branch ?? '(detached)'}
-              </span>
+              <span className="text-bright font-semibold truncate">{status.branch ?? '(detached)'}</span>
             </div>
             {(status.ahead ?? 0) + (status.behind ?? 0) > 0 && (
               <div className="text-muted mt-0.5 flex items-center gap-2">
