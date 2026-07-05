@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { modelLabel, type HistoryEntry } from '@shared/types'
 import Icon from './Icon'
 import LiquidSpark from './LiquidSpark'
+import ShaderBackground, { BG_PRESETS, type BgPreset } from './ShaderBackground'
 import { useSessionsStore } from '@/stores/sessions'
 import { useSettingsStore } from '@/stores/settings'
 import type { TabState } from '@/lib/chat'
@@ -25,6 +26,13 @@ export default function HomeScreen({ tab }: { tab: TabState }): React.JSX.Elemen
   const lastCwd = useSettingsStore((s) => s.settings?.lastCwd ?? null)
   const [sessions, setSessions] = useState<HistoryEntry[] | null>(null)
   const [q, setQ] = useState('')
+  const [bg, setBg] = useState<BgPreset>('ember')
+
+  const cycleBg = (): void => {
+    const keys = BG_PRESETS.map((p) => p.key)
+    setBg((cur) => keys[(keys.indexOf(cur) + 1) % keys.length])
+  }
+  const bgLabel = BG_PRESETS.find((p) => p.key === bg)?.label ?? 'Off'
 
   useEffect(() => {
     let cancelled = false
@@ -56,15 +64,23 @@ export default function HomeScreen({ tab }: { tab: TabState }): React.JSX.Elemen
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col relative overflow-hidden">
+      <ShaderBackground preset={bg} />
       {/* header */}
-      <div className="px-6 pt-6 pb-3 flex items-center gap-3 shrink-0">
+      <div className="px-6 pt-6 pb-3 flex items-center gap-3 shrink-0 relative">
         <LiquidSpark size={24} />
         <div>
           <div className="text-bright text-lg font-bold leading-tight">Claude Code Desktop</div>
           <div className="text-dim text-[12px]">Your sessions — click to resume</div>
         </div>
         <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={cycleBg}
+            className="text-muted hover:text-fg text-[12px] border border-border hover:border-accent rounded px-3 py-1.5"
+            title="Cycle animated background (experimental)"
+          >
+            BG: {bgLabel}
+          </button>
           {lastCwd && (
             <button
               onClick={() => void openFolder(tab.id, lastCwd)}
@@ -84,7 +100,7 @@ export default function HomeScreen({ tab }: { tab: TabState }): React.JSX.Elemen
       </div>
 
       {/* search */}
-      <div className="px-6 pb-2 shrink-0">
+      <div className="px-6 pb-2 shrink-0 relative">
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -94,7 +110,7 @@ export default function HomeScreen({ tab }: { tab: TabState }): React.JSX.Elemen
       </div>
 
       {/* list */}
-      <div className="flex-1 overflow-y-auto px-6 pb-6">
+      <div className="flex-1 overflow-y-auto px-6 pb-6 relative">
         <div className="max-w-[900px] mx-auto">
           {sessions === null ? (
             <div className="text-dim py-8 text-center">
