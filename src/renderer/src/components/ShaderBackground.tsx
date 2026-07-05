@@ -18,7 +18,7 @@ const BASE: Partial<SGProps> = {
   animate: 'on',
   grain: 'on',
   grainBlending: 0.38,
-  brightness: 1.1,
+  brightness: 0.85,
   cDistance: 3.6,
   cAzimuthAngle: 180,
   cPolarAngle: 80,
@@ -32,10 +32,11 @@ const BASE: Partial<SGProps> = {
 }
 
 const PRESETS: Record<Exclude<BgPreset, 'off'>, Partial<SGProps>> = {
-  ember: { ...BASE, type: 'waterPlane', color1: '#161512', color2: '#b4643f', color3: '#d97757', uSpeed: 0.08, uStrength: 1.3, uDensity: 1.3 },
-  dusk: { ...BASE, type: 'plane', color1: '#12110f', color2: '#26231d', color3: '#d97757', uSpeed: 0.06, uStrength: 1.0, uDensity: 1.1 },
-  molten: { ...BASE, type: 'sphere', color1: '#0f0e0c', color2: '#a5502f', color3: '#e08a5e', uSpeed: 0.1, uStrength: 0.9, uDensity: 1.4, cDistance: 3.2 },
-  charcoal: { ...BASE, type: 'waterPlane', color1: '#161512', color2: '#2e2b25', color3: '#3a3630', uSpeed: 0.05, uStrength: 1.1, uDensity: 1.2 }
+  // Muted, closer to the app's dark palette so the gradient tints rather than pops.
+  ember: { ...BASE, type: 'waterPlane', color1: '#161512', color2: '#2f2620', color3: '#7c4a34', uSpeed: 0.08, uStrength: 1.3, uDensity: 1.3 },
+  dusk: { ...BASE, type: 'plane', color1: '#131210', color2: '#1e1c18', color3: '#4c3a30', uSpeed: 0.06, uStrength: 1.0, uDensity: 1.1 },
+  molten: { ...BASE, type: 'sphere', color1: '#100f0d', color2: '#2c2019', color3: '#6e4230', uSpeed: 0.1, uStrength: 0.9, uDensity: 1.4, cDistance: 3.2 },
+  charcoal: { ...BASE, type: 'waterPlane', color1: '#161512', color2: '#22201b', color3: '#302c26', uSpeed: 0.05, uStrength: 1.1, uDensity: 1.2 }
 }
 
 /**
@@ -44,7 +45,7 @@ const PRESETS: Record<Exclude<BgPreset, 'off'>, Partial<SGProps>> = {
  */
 export default function ShaderBackground({
   preset,
-  opacity = 0.55
+  opacity = 0.45
 }: {
   preset: BgPreset
   opacity?: number
@@ -57,12 +58,12 @@ export default function ShaderBackground({
           <ShaderGradient {...PRESETS[preset]} />
         </ShaderGradientCanvas>
       </div>
-      {/* scrim for legibility */}
+      {/* scrim: let the tint show in the center, fade to the app bg at the edges */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            'radial-gradient(120% 90% at 50% 0%, rgba(22,21,18,0.35), rgba(22,21,18,0.82))'
+            'radial-gradient(130% 100% at 50% 38%, rgba(22,21,18,0.15), rgba(22,21,18,0.6) 55%, rgba(22,21,18,0.92) 100%)'
         }}
       />
     </div>
