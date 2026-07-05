@@ -73,10 +73,17 @@ export default function UsageMeter(): React.JSX.Element | null {
           '\nFrom your claude.ai plan (same as /usage in Claude Code).'
         }
       >
-        <Icon name="gauge" size={13} style={{ color: barColor(pct) }} />
+        <Icon
+          name="gauge"
+          size={13}
+          style={{ color: barColor(pct), filter: `drop-shadow(0 0 2.5px ${barColor(pct)}55)` }}
+        />
         <span className="tabular-nums">5h</span>
         <div className="w-16 h-1.5 bg-panel2 rounded overflow-hidden">
-          <div className="h-full transition-all" style={{ width: `${pct}%`, background: barColor(pct) }} />
+          <div
+            className="h-full transition-all"
+            style={{ width: `${pct}%`, background: barColor(pct), boxShadow: `0 0 4px ${barColor(pct)}66` }}
+          />
         </div>
         <span className="tabular-nums text-fg">{pct}%</span>
         {five.resetsAt && <span className="text-dim">· {resetIn(five.resetsAt)}</span>}

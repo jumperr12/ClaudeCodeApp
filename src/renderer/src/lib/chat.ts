@@ -23,7 +23,7 @@ export type ChatItem =
       isError?: boolean
       done: boolean
     }
-  | { kind: 'result'; id: string; ok: boolean; costUsd?: number; durationMs?: number }
+  | { kind: 'result'; id: string; ok: boolean; costUsd?: number; durationMs?: number; tokens?: number }
   | { kind: 'info'; id: string; text: string; tone: 'normal' | 'error' }
 
 export interface TabState {
@@ -39,6 +39,8 @@ export interface TabState {
   items: ChatItem[]
   sdkSessionId?: string
   costUsd: number
+  /** cumulative real tokens this session (input+output+cacheCreate, excl. cache reads) */
+  sessionTokens: number
   contextTokens: number
   contextLimit: number
   /** map: stream content-block index -> chat item id (reset on message_start) */
@@ -68,6 +70,7 @@ export function createTab(
     status: 'empty',
     items: [],
     costUsd: 0,
+    sessionTokens: 0,
     contextTokens: 0,
     contextLimit: 200_000,
     streamBlocks: {},
@@ -89,6 +92,22 @@ function usageTokens(usage: Obj): number {
     Number(usage.cache_read_input_tokens ?? 0) +
     Number(usage.output_tokens ?? 0)
   )
+}
+
+/** Real work tokens for a turn — excludes cache reads (re-read context inflates ~50x). */
+function realTokens(usage: Obj): number {
+  return (
+    Number(usage.input_tokens ?? 0) +
+    Number(usage.cache_creation_input_tokens ?? 0) +
+    Number(usage.output_tokens ?? 0)
+  )
+}
+
+/** Compact token count for the UI: 12345 -> "12.3k". */
+export function fmtTokens(n: number): string {
+  if (n < 1000) return String(n)
+  if (n < 1_000_000) return `${(n / 1000).toFixed(n < 10_000 ? 1 : 0)}k`
+  return `${(n / 1_000_000).toFixed(1)}M`
 }
 
 function toolResultText(content: unknown): string {
@@ -346,10 +365,12 @@ function reduceResult(tab: TabState, message: Obj): TabState {
   const cost = typeof message.total_cost_usd === 'number' ? message.total_cost_usd : undefined
   const usage = asObj(message.usage)
   const tokens = usageTokens(usage)
+  const turnTokens = realTokens(usage)
   return {
     ...tab,
     status: 'idle',
     costUsd: tab.costUsd + (cost ?? 0),
+    sessionTokens: tab.sessionTokens + turnTokens,
     contextTokens: tokens > 0 ? tokens : tab.contextTokens,
     items: [
       ...tab.items,
@@ -358,7 +379,8 @@ function reduceResult(tab: TabState, message: Obj): TabState {
         id: nextId(),
         ok: message.subtype === 'success',
         costUsd: cost,
-        durationMs: typeof message.duration_ms === 'number' ? message.duration_ms : undefined
+        durationMs: typeof message.duration_ms === 'number' ? message.duration_ms : undefined,
+        tokens: turnTokens > 0 ? turnTokens : undefined
       }
     ]
   }

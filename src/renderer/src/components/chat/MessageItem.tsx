@@ -1,5 +1,6 @@
 import { memo } from 'react'
 import type { ChatItem } from '@/lib/chat'
+import { fmtTokens } from '@/lib/chat'
 import Markdown from './Markdown'
 import ThinkingBlock from './ThinkingBlock'
 import ToolCallCard from './ToolCallCard'
@@ -45,7 +46,7 @@ function MessageItemInner({ item }: { item: ChatItem }): React.JSX.Element | nul
           <span>
             {item.ok ? 'Done' : 'Finished with error'}
             {item.durationMs !== undefined ? ` · ${(item.durationMs / 1000).toFixed(1)}s` : ''}
-            {item.costUsd !== undefined ? ` · $${item.costUsd.toFixed(4)}` : ''}
+            {item.tokens ? ` · ${fmtTokens(item.tokens)} tok` : ''}
           </span>
         </div>
       )

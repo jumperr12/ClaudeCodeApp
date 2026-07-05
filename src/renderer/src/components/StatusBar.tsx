@@ -1,5 +1,6 @@
 import { MODEL_FAMILIES, PERMISSION_MODES, modelLabel, type PermissionMode } from '@shared/types'
 import type { TabState } from '@/lib/chat'
+import { fmtTokens } from '@/lib/chat'
 import Icon from './Icon'
 import InlineSelect from './InlineSelect'
 import EffortControl from './EffortControl'
@@ -56,7 +57,14 @@ export default function StatusBar({ tab }: { tab: TabState }): React.JSX.Element
 
       <div className="ml-auto flex items-center gap-3">
         <UsageMeter />
-        {tab.costUsd > 0 && <span title="Session cost">${tab.costUsd.toFixed(4)}</span>}
+        {tab.sessionTokens > 0 && (
+          <span
+            className="tabular-nums"
+            title={`Session tokens: ${tab.sessionTokens.toLocaleString('en-US')} (input+output+cache-write, excl. cache reads)`}
+          >
+            {fmtTokens(tab.sessionTokens)} tok
+          </span>
+        )}
         <div
           className="flex items-center gap-1.5"
           title={`Context: ~${tab.contextTokens.toLocaleString('en-US')} tokens`}

@@ -328,6 +328,7 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
           ...t,
           items: [],
           costUsd: 0,
+          sessionTokens: 0,
           contextTokens: 0,
           sdkSessionId: undefined,
           status: 'connecting'
