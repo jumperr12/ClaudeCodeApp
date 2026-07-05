@@ -1,5 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import TitleBar from './components/TitleBar'
+import LiquidSparkIntro from './components/LiquidSparkIntro'
 import StatusBar from './components/StatusBar'
 import ChatView from './components/chat/ChatView'
 import GitHubPanel from './components/github/GitHubPanel'
@@ -18,6 +19,7 @@ import { useUiStore } from './stores/ui'
 export default function App(): React.JSX.Element {
   const activeTab = useActiveTab()
   const ui = useUiStore()
+  const [intro, setIntro] = useState(true)
 
   // wire IPC listeners once
   useEffect(() => {
@@ -59,6 +61,7 @@ export default function App(): React.JSX.Element {
 
   return (
     <div className="h-full flex flex-col bg-bg">
+      {intro && <LiquidSparkIntro onDone={() => setIntro(false)} />}
       <TitleBar />
       <div className="flex-1 flex min-h-0">
         <div className="flex-1 min-w-0">
