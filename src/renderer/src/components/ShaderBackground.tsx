@@ -16,7 +16,8 @@ export const BG_PRESETS: { key: BgPreset; label: string }[] = [
 const BASE: Partial<SGProps> = {
   control: 'props',
   animate: 'on',
-  grain: 'off',
+  grain: 'on',
+  grainBlending: 0.45,
   brightness: 1.1,
   cDistance: 3.6,
   cAzimuthAngle: 180,
@@ -31,10 +32,10 @@ const BASE: Partial<SGProps> = {
 }
 
 const PRESETS: Record<Exclude<BgPreset, 'off'>, Partial<SGProps>> = {
-  ember: { ...BASE, type: 'waterPlane', color1: '#161512', color2: '#b4643f', color3: '#d97757', uSpeed: 0.18, uStrength: 1.3, uDensity: 1.3 },
-  dusk: { ...BASE, type: 'plane', color1: '#12110f', color2: '#26231d', color3: '#d97757', uSpeed: 0.14, uStrength: 1.0, uDensity: 1.1 },
-  molten: { ...BASE, type: 'sphere', color1: '#0f0e0c', color2: '#a5502f', color3: '#e08a5e', uSpeed: 0.22, uStrength: 0.9, uDensity: 1.4, cDistance: 3.2 },
-  charcoal: { ...BASE, type: 'waterPlane', color1: '#161512', color2: '#2e2b25', color3: '#3a3630', uSpeed: 0.12, uStrength: 1.1, uDensity: 1.2 }
+  ember: { ...BASE, type: 'waterPlane', color1: '#161512', color2: '#b4643f', color3: '#d97757', uSpeed: 0.08, uStrength: 1.3, uDensity: 1.3 },
+  dusk: { ...BASE, type: 'plane', color1: '#12110f', color2: '#26231d', color3: '#d97757', uSpeed: 0.06, uStrength: 1.0, uDensity: 1.1 },
+  molten: { ...BASE, type: 'sphere', color1: '#0f0e0c', color2: '#a5502f', color3: '#e08a5e', uSpeed: 0.1, uStrength: 0.9, uDensity: 1.4, cDistance: 3.2 },
+  charcoal: { ...BASE, type: 'waterPlane', color1: '#161512', color2: '#2e2b25', color3: '#3a3630', uSpeed: 0.05, uStrength: 1.1, uDensity: 1.2 }
 }
 
 /**
