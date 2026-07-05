@@ -1,6 +1,7 @@
 import type { GitStatusPayload } from '@shared/types'
 import type { TabState } from '@/lib/chat'
 import Icon, { type IconName } from '../Icon'
+import ShaderBackground from '../ShaderBackground'
 import { useGitStore } from '@/stores/git'
 import { useUiStore } from '@/stores/ui'
 
@@ -40,7 +41,9 @@ export default function GitHubPanel({ tab }: { tab: TabState }): React.JSX.Eleme
   }
 
   return (
-    <div className="w-[300px] shrink-0 border-l border-border bg-panel flex flex-col h-full">
+    <div className="w-[300px] shrink-0 border-l border-border bg-panel flex flex-col h-full relative overflow-hidden">
+      <ShaderBackground preset="github" opacity={0.42} />
+      <div className="relative z-10 flex flex-col h-full min-h-0">
       <div className="px-3 py-2 border-b border-border flex items-center gap-2">
         <span className="text-bright font-bold text-[12px]">GitHub</span>
         <button
@@ -159,6 +162,7 @@ export default function GitHubPanel({ tab }: { tab: TabState }): React.JSX.Eleme
           {status.error && <div className="px-3 py-2 text-bad">{status.error}</div>}
         </div>
       )}
+      </div>
     </div>
   )
 }
