@@ -21,12 +21,36 @@ function relDate(ms: number): string {
   return `${d.toLocaleDateString('en-US')} ${time}`
 }
 
+const DEFAULT_SC = '#5fa8ad'
+const PALETTE = ['#5fa8ad', '#3e9b8e', '#8faf88', '#d9a94e', '#d97757', '#d1748a', '#8f7bc4', '#5f86c4', '#6f8296']
+
+function loadColors(): Record<string, string> {
+  try {
+    return JSON.parse(localStorage.getItem('sessionColors') || '{}')
+  } catch {
+    return {}
+  }
+}
+
 export default function HomeScreen({ tab }: { tab: TabState }): React.JSX.Element {
   const openFolder = useSessionsStore((s) => s.openFolder)
   const lastCwd = useSettingsStore((s) => s.settings?.lastCwd ?? null)
   const [sessions, setSessions] = useState<HistoryEntry[] | null>(null)
   const [q, setQ] = useState('')
   const [bg, setBg] = useState<BgPreset>('ember')
+  const [colors, setColors] = useState<Record<string, string>>(loadColors)
+  const [pickerFor, setPickerFor] = useState<string | null>(null)
+
+  const setColor = (sessionId: string, color: string | null): void => {
+    setColors((cur) => {
+      const next = { ...cur }
+      if (color) next[sessionId] = color
+      else delete next[sessionId]
+      localStorage.setItem('sessionColors', JSON.stringify(next))
+      return next
+    })
+    setPickerFor(null)
+  }
 
   const cycleBg = (): void => {
     const keys = BG_PRESETS.map((p) => p.key)
@@ -125,8 +149,8 @@ export default function HomeScreen({ tab }: { tab: TabState }): React.JSX.Elemen
           ) : (
             <div className="space-y-1.5">
               {filtered.map((e) => (
+                <div key={e.sessionId} className="relative">
                 <button
-                  key={e.sessionId}
                   onClick={() => resume(e)}
                   disabled={!e.cwd}
                   className="w-full text-left border border-border hover:border-accent rounded-lg p-3 disabled:opacity-50 group transition-all hover:brightness-[1.09] hover:shadow-[0_4px_22px_-8px_var(--sc-shadow)]"
@@ -136,7 +160,7 @@ export default function HomeScreen({ tab }: { tab: TabState }): React.JSX.Elemen
                       // gradient + hover glow tint themselves toward it automatically.
                       // Default is a dusty cyan — a fresh complement to terracotta, so
                       // cards read distinct against the warm background without clashing.
-                      '--sc': '#5fa8ad',
+                      '--sc': colors[e.sessionId] ?? DEFAULT_SC,
                       '--sc-shadow': 'color-mix(in srgb, var(--sc) 42%, transparent)',
                       background:
                         'linear-gradient(150deg, color-mix(in srgb, var(--sc) 15%, #232220) 0%, #1c1b19 52%, #161513 100%)'
@@ -177,6 +201,41 @@ export default function HomeScreen({ tab }: { tab: TabState }): React.JSX.Elemen
                     </span>
                   </div>
                 </button>
+
+                {/* session color dot */}
+                <button
+                  onClick={(ev) => {
+                    ev.stopPropagation()
+                    setPickerFor((p) => (p === e.sessionId ? null : e.sessionId))
+                  }}
+                  className="absolute top-2 right-2 w-3.5 h-3.5 rounded-full border border-black/40 hover:scale-125 transition-transform"
+                  style={{ background: colors[e.sessionId] ?? DEFAULT_SC }}
+                  title="Session color"
+                />
+                {pickerFor === e.sessionId && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setPickerFor(null)} />
+                    <div className="absolute top-7 right-2 z-50 bg-panel border border-border rounded-lg p-2 shadow-2xl grid grid-cols-5 gap-1.5 w-[164px]">
+                      {PALETTE.map((c) => (
+                        <button
+                          key={c}
+                          onClick={() => setColor(e.sessionId, c)}
+                          className="w-5 h-5 rounded-full border border-black/40 hover:scale-110 transition-transform"
+                          style={{ background: c }}
+                          title={c}
+                        />
+                      ))}
+                      <button
+                        onClick={() => setColor(e.sessionId, null)}
+                        className="w-5 h-5 rounded-full border border-border text-dim text-[11px] flex items-center justify-center hover:text-fg"
+                        title="Default"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </>
+                )}
+                </div>
               ))}
             </div>
           )}
