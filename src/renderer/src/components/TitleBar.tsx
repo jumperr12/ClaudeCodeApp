@@ -1,5 +1,6 @@
 import SessionTabs from './tabs/SessionTabs'
-import Icon, { Spark } from './Icon'
+import Icon from './Icon'
+import LiquidSpark from './LiquidSpark'
 import { useUiStore } from '@/stores/ui'
 
 export default function TitleBar(): React.JSX.Element {
@@ -13,7 +14,7 @@ export default function TitleBar(): React.JSX.Element {
   return (
     <div className="drag h-10 flex items-center gap-3 px-3 border-b border-border bg-bg select-none shrink-0">
       <div className="flex items-center gap-2 text-[13px]">
-        <Spark size={15} className="text-accent" />
+        <LiquidSpark size={16} />
         <span className="text-bright font-bold">Claude Code</span>
         <span className="text-dim">Desktop</span>
       </div>

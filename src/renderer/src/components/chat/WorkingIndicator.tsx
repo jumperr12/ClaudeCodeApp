@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Spark } from '../Icon'
+import LiquidSpark from '../LiquidSpark'
 import type { ChatItem, TabState } from '@/lib/chat'
 
 const GENERIC = ['Working', 'Processing', 'Crunching', 'On it']
@@ -52,14 +52,11 @@ export default function WorkingIndicator({ tab }: { tab: TabState }): React.JSX.
     <div className="border-t border-border bg-panel/60 px-4 py-1.5">
       <div className="flex items-center gap-2.5 text-[12px]">
         <motion.span
-          className="text-accent inline-flex"
-          animate={{ rotate: 360, scale: [1, 1.2, 1] }}
-          transition={{
-            rotate: { repeat: Infinity, duration: 2.2, ease: 'linear' },
-            scale: { repeat: Infinity, duration: 1.1 }
-          }}
+          className="inline-flex"
+          animate={{ scale: [1, 1.18, 1] }}
+          transition={{ repeat: Infinity, duration: 1.2, ease: 'easeInOut' }}
         >
-          <Spark size={14} />
+          <LiquidSpark size={15} speed={2.4} />
         </motion.span>
         <span className="text-fg font-medium">
           <span className="shimmer">{activity}</span>

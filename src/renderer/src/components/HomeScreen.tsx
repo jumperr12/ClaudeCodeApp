@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { modelLabel, type HistoryEntry } from '@shared/types'
-import Icon, { Spark } from './Icon'
+import Icon from './Icon'
+import LiquidSpark from './LiquidSpark'
 import { useSessionsStore } from '@/stores/sessions'
 import { useSettingsStore } from '@/stores/settings'
 import type { TabState } from '@/lib/chat'
@@ -58,7 +59,7 @@ export default function HomeScreen({ tab }: { tab: TabState }): React.JSX.Elemen
     <div className="h-full flex flex-col">
       {/* header */}
       <div className="px-6 pt-6 pb-3 flex items-center gap-3 shrink-0">
-        <Spark size={22} className="text-accent" />
+        <LiquidSpark size={24} />
         <div>
           <div className="text-bright text-lg font-bold leading-tight">Claude Code Desktop</div>
           <div className="text-dim text-[12px]">Your sessions — click to resume</div>
