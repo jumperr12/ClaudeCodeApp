@@ -44,8 +44,8 @@ const PRESETS: Record<Exclude<BgPreset, 'off'>, Partial<SGProps>> = {
   dusk: { ...BASE, type: 'plane', color1: '#131210', color2: '#26231d', color3: '#7a4c38', uSpeed: 0.06, uStrength: 1.0, uDensity: 1.1 },
   molten: { ...BASE, type: 'sphere', color1: '#100f0d', color2: '#4a2f22', color3: '#c06a42', uSpeed: 0.1, uStrength: 0.9, uDensity: 1.4, cDistance: 3.2 },
   charcoal: { ...BASE, type: 'waterPlane', color1: '#161512', color2: '#2e2b25', color3: '#463f36', uSpeed: 0.05, uStrength: 1.1, uDensity: 1.2 },
-  // GitHub palette: dark canvas → green → blue (not in the home cycle; used by the GitHub panel)
-  github: { ...BASE, type: 'waterPlane', color1: '#0d1117', color2: '#196c3a', color3: '#1f6feb', uSpeed: 0.07, uStrength: 1.2, uDensity: 1.3 }
+  // GitHub panel: monochrome greyscale (dark canvas → grey → light). Not in the home cycle.
+  github: { ...BASE, type: 'waterPlane', color1: '#0d1117', color2: '#484f58', color3: '#b1bac4', uSpeed: 0.07, uStrength: 1.2, uDensity: 1.3 }
 }
 
 /**
