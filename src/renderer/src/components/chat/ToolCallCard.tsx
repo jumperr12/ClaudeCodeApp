@@ -54,11 +54,14 @@ export default function ToolCallCard({ item }: { item: ToolItem }): React.JSX.El
 
   return (
     <div
-      className="my-1.5 rounded-md border border-border bg-panel2/60 overflow-hidden"
-      style={{ borderLeft: `3px solid ${stateColor}` }}
+      className="my-1.5 rounded-md border border-border overflow-hidden"
+      style={{
+        borderLeft: `3px solid ${stateColor}`,
+        background: `linear-gradient(to right, color-mix(in srgb, ${stateColor} 16%, #26231d) 0%, rgba(38,35,29,0.55) 42%)`
+      }}
     >
       <button
-        className="flex items-center gap-2 text-left w-full px-2.5 py-1.5 hover:bg-panel2 transition-colors"
+        className="flex items-center gap-2 text-left w-full px-2.5 py-1.5 hover:bg-white/[0.04] transition-colors"
         onClick={() => setExpanded((e) => !e)}
       >
         {!item.done ? (
