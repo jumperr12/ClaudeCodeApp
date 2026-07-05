@@ -17,7 +17,7 @@ const BASE: Partial<SGProps> = {
   control: 'props',
   animate: 'on',
   grain: 'on',
-  grainBlending: 0.45,
+  grainBlending: 0.38,
   brightness: 1.1,
   cDistance: 3.6,
   cAzimuthAngle: 180,
@@ -53,7 +53,7 @@ export default function ShaderBackground({
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
       <div style={{ position: 'absolute', inset: 0, opacity }}>
-        <ShaderGradientCanvas style={{ width: '100%', height: '100%' }} pointerEvents="none">
+        <ShaderGradientCanvas style={{ width: '100%', height: '100%' }} pointerEvents="none" pixelDensity={2}>
           <ShaderGradient {...PRESETS[preset]} />
         </ShaderGradientCanvas>
       </div>
