@@ -54,10 +54,10 @@ export default function ToolCallCard({ item }: { item: ToolItem }): React.JSX.El
 
   return (
     <div
-      className="my-1.5 w-fit max-w-full rounded-md border border-border overflow-hidden"
+      className="my-1.5 rounded-md border border-border overflow-hidden"
       style={{
         borderLeft: `3px solid ${stateColor}`,
-        background: `linear-gradient(to right, color-mix(in srgb, ${stateColor} 16%, #26231d) 0%, rgba(38,35,29,0.55) 42%)`
+        background: `linear-gradient(to right, color-mix(in srgb, ${stateColor} 22%, #26231d) 0px, rgba(38,35,29,0.55) 110px)`
       }}
     >
       <button
@@ -78,14 +78,14 @@ export default function ToolCallCard({ item }: { item: ToolItem }): React.JSX.El
           </span>
         )}
         <span className="text-bright font-semibold shrink-0">{item.name}</span>
-        <span className="text-muted truncate text-[12.5px] max-w-[360px]">{summarize(item.name, item.input)}</span>
+        <span className="text-muted truncate text-[12.5px]">{summarize(item.name, item.input)}</span>
         {item.done && item.isError && (
           <span className="text-bad text-[11px] shrink-0 uppercase tracking-wide">error</span>
         )}
         <Icon
           name="chevronDown"
           size={13}
-          className={`ml-1.5 shrink-0 text-dim transition-transform ${expanded ? 'rotate-180' : ''}`}
+          className={`ml-auto shrink-0 text-dim transition-transform ${expanded ? 'rotate-180' : ''}`}
         />
       </button>
 
