@@ -134,10 +134,11 @@ export default function HomeScreen({ tab }: { tab: TabState }): React.JSX.Elemen
                     {
                       // Per-session accent goes here later (set --sc per card); the
                       // gradient + hover glow tint themselves toward it automatically.
-                      '--sc': 'var(--color-accent)',
+                      // Default is a cool slate so cards contrast with the warm background.
+                      '--sc': '#6f8296',
                       '--sc-shadow': 'color-mix(in srgb, var(--sc) 45%, transparent)',
                       background:
-                        'linear-gradient(150deg, color-mix(in srgb, var(--sc) 13%, #2b2721) 0%, #201d18 52%, #17150f 100%)'
+                        'linear-gradient(150deg, color-mix(in srgb, var(--sc) 16%, #24232a) 0%, #1c1b20 52%, #161519 100%)'
                     } as React.CSSProperties
                   }
                   title={e.cwd ? `Resume in: ${e.cwd}` : 'No project path in transcript'}
