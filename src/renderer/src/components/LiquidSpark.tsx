@@ -23,16 +23,19 @@ export default function LiquidSpark({
   speed?: number
 }): React.JSX.Element {
   const raw = useId().replace(/[^a-zA-Z0-9]/g, '')
-  const gid = `ls-${raw}`
+  const base = `ls-b-${raw}`
+  const spec = `ls-s-${raw}`
   return (
     <svg viewBox="0 0 24 24" width={size} height={size} className={className} style={style} aria-hidden>
       <defs>
-        <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
-          <stop offset="0%" stopColor="#fdeee6" />
-          <stop offset="26%" stopColor="#eaa07c" />
-          <stop offset="50%" stopColor="#d97757" />
-          <stop offset="74%" stopColor="#a5502f" />
-          <stop offset="100%" stopColor="#f4bb9f" />
+        {/* high-contrast metallic band that rotates around the star */}
+        <linearGradient id={base} x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+          <stop offset="0%" stopColor="#fff6ef" />
+          <stop offset="18%" stopColor="#f0a074" />
+          <stop offset="40%" stopColor="#c85f3c" />
+          <stop offset="55%" stopColor="#5f3320" />
+          <stop offset="72%" stopColor="#c85f3c" />
+          <stop offset="100%" stopColor="#fff0e6" />
           <animateTransform
             attributeName="gradientTransform"
             type="rotate"
@@ -42,8 +45,21 @@ export default function LiquidSpark({
             repeatCount="indefinite"
           />
         </linearGradient>
+        {/* bright specular hotspot sweeping across */}
+        <radialGradient id={spec} cx="0.5" cy="0.5" r="0.45" gradientUnits="objectBoundingBox">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
+          <stop offset="55%" stopColor="#ffffff" stopOpacity="0" />
+          <animateTransform
+            attributeName="gradientTransform"
+            type="translate"
+            values="-0.55 -0.35; 0.55 0.35; -0.55 -0.35"
+            dur={`${speed * 0.9}s`}
+            repeatCount="indefinite"
+          />
+        </radialGradient>
       </defs>
-      <path d={STAR} fill={`url(#${gid})`} />
+      <path d={STAR} fill={`url(#${base})`} />
+      <path d={STAR} fill={`url(#${spec})`} style={{ mixBlendMode: 'screen' }} />
     </svg>
   )
 }
