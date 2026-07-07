@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, shell } from 'electron'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { createServices, registerIpc } from './ipc'
@@ -33,6 +33,26 @@ function createWindow(): void {
   mainWindow.once('ready-to-show', () => mainWindow?.show())
   mainWindow.on('closed', () => {
     mainWindow = null
+  })
+
+  // Never let the renderer spawn in-app windows. Route http(s) to the OS browser
+  // (safe protocols only); drop everything else (javascript:, file:, etc.).
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https?:\/\//i.test(url)) void shell.openExternal(url)
+    return { action: 'deny' }
+  })
+
+  // Confine top-level navigation to the app itself — a compromised renderer must
+  // not be able to navigate the window to an arbitrary (phishing/exploit) page.
+  const devOrigin = process.env.ELECTRON_RENDERER_URL
+    ? new URL(process.env.ELECTRON_RENDERER_URL).origin
+    : null
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    const withinApp = url.startsWith('file://') || (devOrigin !== null && url.startsWith(devOrigin))
+    if (!withinApp) {
+      event.preventDefault()
+      if (/^https?:\/\//i.test(url)) void shell.openExternal(url)
+    }
   })
 
   if (process.env.ELECTRON_RENDERER_URL) {
