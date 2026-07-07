@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
 import LiquidSpark from '../LiquidSpark'
 import type { ChatItem, TabState } from '@/lib/chat'
 
 const GENERIC = ['Working', 'Processing', 'Crunching', 'On it']
+
+// Grainy noise overlay — same feTurbulence texture used across the app.
+const GRAIN = `url("data:image/svg+xml,${encodeURIComponent(
+  "<svg xmlns='http://www.w3.org/2000/svg' width='90' height='90'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(#n)'/></svg>"
+)}")`
 
 function basename(p: string): string {
   return p.split(/[\\/]/).filter(Boolean).pop() ?? p
@@ -14,7 +18,7 @@ function currentActivity(items: ChatItem[]): string | null {
   for (let i = items.length - 1; i >= 0; i--) {
     const it = items[i]
     if (it.kind === 'tool') {
-      if (it.done) return null // last tool finished — probably composing the reply
+      if (it.done) return null
       const inp = it.input ?? {}
       if (it.name === 'Bash' && typeof inp.command === 'string') {
         return `Bash: ${String(inp.command).split(/\s+/)[0]}`
@@ -30,7 +34,12 @@ function currentActivity(items: ChatItem[]): string | null {
   return null
 }
 
-export default function WorkingIndicator({ tab }: { tab: TabState }): React.JSX.Element {
+/**
+ * Bottom-right "thinking" indicator: a metallic LiquidSpark riding a spinning,
+ * grainy accent→cyan→violet gradient orb with a soft pulsing glow. Replaces the
+ * old full-width working strip; represents the same live-activity state.
+ */
+export default function WorkingOrb({ tab }: { tab: TabState }): React.JSX.Element {
   const [elapsed, setElapsed] = useState(0)
   const [genIdx, setGenIdx] = useState(0)
 
@@ -45,34 +54,27 @@ export default function WorkingIndicator({ tab }: { tab: TabState }): React.JSX.
     }
   }, [])
 
-  const connecting = tab.status === 'connecting'
-  const activity = connecting ? 'Connecting to Claude Code' : currentActivity(tab.items) ?? GENERIC[genIdx]
+  const activity = currentActivity(tab.items) ?? GENERIC[genIdx]
 
   return (
-    <div className="border-t border-border bg-panel/60 px-4 py-1.5">
-      <div className="flex items-center gap-2.5 text-[12px]">
-        <motion.span
-          className="inline-flex"
-          animate={{ scale: [1, 1.18, 1] }}
-          transition={{ repeat: Infinity, duration: 1.2, ease: 'easeInOut' }}
-        >
-          <LiquidSpark size={15} speed={2.4} />
-        </motion.span>
-        <span className="text-fg font-medium">
-          <span className="shimmer">{activity}</span>
+    <div className="flex items-center gap-2.5">
+      <div className="text-right leading-tight">
+        <div className="shimmer text-[11.5px] font-medium">
+          {activity}
           <span className="text-dim">…</span>
-        </span>
-        <span className="text-dim tabular-nums">{elapsed}s</span>
-        <span className="ml-auto text-dim text-[11px]">Esc to interrupt</span>
+        </div>
+        <div className="text-[10px] text-dim tabular-nums leading-tight">{elapsed}s · Esc to interrupt</div>
       </div>
-      {/* indeterminate progress bar */}
-      <div className="relative h-[3px] mt-1.5 w-full bg-panel2 rounded overflow-hidden">
-        <motion.div
-          className="absolute top-0 h-full w-1/3 rounded"
-          style={{ background: 'var(--color-accent)' }}
-          animate={{ left: ['-35%', '100%'] }}
-          transition={{ repeat: Infinity, duration: 1.15, ease: 'easeInOut' }}
+      <div className="relative h-10 w-10 shrink-0">
+        <div className="wo-glow absolute -inset-1.5 rounded-full" />
+        <div className="wo-grad absolute inset-0 rounded-full" />
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{ backgroundImage: GRAIN, mixBlendMode: 'overlay', opacity: 0.14 }}
         />
+        <div className="absolute inset-0 grid place-items-center">
+          <LiquidSpark size={19} speed={2.6} />
+        </div>
       </div>
     </div>
   )

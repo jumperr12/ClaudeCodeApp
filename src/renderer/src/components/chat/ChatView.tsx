@@ -3,7 +3,7 @@ import type { TabState } from '@/lib/chat'
 import MessageItem from './MessageItem'
 import PromptInput from './PromptInput'
 import PermissionModal from './PermissionModal'
-import WorkingIndicator from './WorkingIndicator'
+import WorkingOrb from './WorkingOrb'
 import HomeScreen from '../HomeScreen'
 import Icon from '../Icon'
 import { useSessionsStore } from '@/stores/sessions'
@@ -47,7 +47,11 @@ export default function ChatView({ tab }: { tab: TabState }): React.JSX.Element 
           ))}
         </div>
       </div>
-      {(tab.status === 'working' || tab.status === 'connecting') && <WorkingIndicator tab={tab} />}
+      {tab.status === 'working' && (
+        <div className="flex justify-end px-5 py-1.5 pointer-events-none">
+          <WorkingOrb tab={tab} />
+        </div>
+      )}
       <PromptInput tab={tab} />
       {pending && <PermissionModal tab={tab} request={pending} />}
     </div>

@@ -14,7 +14,7 @@ export default function StatusBar({ tab }: { tab: TabState }): React.JSX.Element
   const modeLabel = PERMISSION_MODES.find((m) => m.id === tab.permissionMode)?.label ?? tab.permissionMode
 
   return (
-    <div className="h-7 shrink-0 border-t border-border bg-bg flex items-center gap-4 px-3 text-[11px] text-muted select-none">
+    <div className="h-7 shrink-0 border-t border-border bg-bg flex items-center gap-4 px-3 text-[11px] text-muted select-none [&_svg]:-translate-y-px">
       <span className="truncate max-w-[240px] flex items-center gap-1.5" title={tab.cwd ?? ''}>
         <Icon name="folder" size={13} className="shrink-0" /> {tab.cwd ?? 'no project'}
       </span>

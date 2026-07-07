@@ -160,6 +160,11 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
       })
       await window.api.gitSubscribe(tabId, cwd)
       void useSettingsStore.getState().update({ lastCwd: cwd })
+      // The Agent SDK connects lazily (it emits `init` only on the first message),
+      // so don't sit in a perpetual "connecting" state — the app is ready for input.
+      set((st) => ({
+        tabs: patchTab(st.tabs, tabId, (t) => (t.status === 'connecting' ? { ...t, status: 'idle' } : t))
+      }))
     },
 
     sendPrompt: async (tabId, raw) => {
@@ -340,6 +345,9 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
         permissionMode: tab.permissionMode,
         effort: tab.effort
       })
+      set((st) => ({
+        tabs: patchTab(st.tabs, tabId, (t) => (t.status === 'connecting' ? { ...t, status: 'idle' } : t))
+      }))
     }
   }
 })

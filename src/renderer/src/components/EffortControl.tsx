@@ -44,7 +44,7 @@ export default function EffortControl({ tab }: { tab: TabState }): React.JSX.Ele
     <div className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className={`relative top-px flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-panel2 ${
+        className={`flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-panel2 ${
           isUltra ? 'font-semibold' : 'text-muted hover:text-fg'
         }`}
         style={isUltra ? { color: ULTRA_SOFT } : undefined}
