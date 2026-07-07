@@ -1,4 +1,4 @@
-import { ipcMain, dialog, shell, type BrowserWindow } from 'electron'
+import { ipcMain, dialog, shell, type BrowserWindow, type IpcMainInvokeEvent } from 'electron'
 import type {
   AppSettings,
   CreateSessionOptions,
@@ -34,71 +34,94 @@ export function createServices(getWindow: () => BrowserWindow | null): Services 
   return { sessions, git, settings, costs, superprompt, broker }
 }
 
+/** Only accept IPC from our own app frame (dev-server origin, or file:// in prod). */
+function isTrustedSender(e: IpcMainInvokeEvent): boolean {
+  const url = e.senderFrame?.url ?? ''
+  const dev = process.env.ELECTRON_RENDERER_URL
+  if (dev && url.startsWith(new URL(dev).origin)) return true
+  return url.startsWith('file://')
+}
+
 export function registerIpc(services: Services, getWindow: () => BrowserWindow | null): void {
   const { sessions, git, settings, costs, superprompt, broker } = services
 
+  // Wrap every channel with a sender-frame check so a hijacked/embedded frame
+  // can't drive the privileged main-process API.
+  const handle = (
+    channel: string,
+    fn: (e: IpcMainInvokeEvent, ...args: never[]) => unknown
+  ): void => {
+    ipcMain.handle(channel, (e, ...args) => {
+      if (!isTrustedSender(e)) {
+        console.warn(`[ipc] blocked "${channel}" from untrusted frame: ${e.senderFrame?.url ?? '(no url)'}`)
+        throw new Error(`Blocked IPC "${channel}" from an untrusted frame`)
+      }
+      return fn(e, ...(args as never[]))
+    })
+  }
+
   // --- sessions ---
-  ipcMain.handle('session:create', (_e, tabId: string, opts: CreateSessionOptions) => {
+  handle('session:create', (_e, tabId: string, opts: CreateSessionOptions) => {
     const win = getWindow()
     if (win) sessions.create(win, tabId, opts)
   })
-  ipcMain.handle('session:send', (_e, tabId: string, text: string) => sessions.send(tabId, text))
-  ipcMain.handle('session:interrupt', (_e, tabId: string) => sessions.interrupt(tabId))
-  ipcMain.handle('session:close', (_e, tabId: string) => sessions.close(tabId))
-  ipcMain.handle('session:setPermissionMode', (_e, tabId: string, mode: PermissionMode) =>
+  handle('session:send', (_e, tabId: string, text: string) => sessions.send(tabId, text))
+  handle('session:interrupt', (_e, tabId: string) => sessions.interrupt(tabId))
+  handle('session:close', (_e, tabId: string) => sessions.close(tabId))
+  handle('session:setPermissionMode', (_e, tabId: string, mode: PermissionMode) =>
     sessions.setPermissionMode(tabId, mode)
   )
-  ipcMain.handle('session:setModel', (_e, tabId: string, model: string) => sessions.setModel(tabId, model))
-  ipcMain.handle('session:planUsage', (_e, tabId: string) => sessions.getPlanUsage(tabId))
-  ipcMain.handle('session:setEffort', (_e, tabId: string, effort: EffortLevel) =>
+  handle('session:setModel', (_e, tabId: string, model: string) => sessions.setModel(tabId, model))
+  handle('session:planUsage', (_e, tabId: string) => sessions.getPlanUsage(tabId))
+  handle('session:setEffort', (_e, tabId: string, effort: EffortLevel) =>
     sessions.setEffort(tabId, effort)
   )
-  ipcMain.handle('session:setUltracode', (_e, tabId: string, enabled: boolean) =>
+  handle('session:setUltracode', (_e, tabId: string, enabled: boolean) =>
     sessions.setUltracode(tabId, enabled)
   )
 
   // --- permissions ---
-  ipcMain.handle('permission:respond', (_e, requestId: string, decision: PermissionDecision) =>
+  handle('permission:respond', (_e, requestId: string, decision: PermissionDecision) =>
     broker.respond(requestId, decision)
   )
 
   // --- git ---
-  ipcMain.handle('git:subscribe', (_e, tabId: string, cwd: string) => git.subscribe(tabId, cwd))
-  ipcMain.handle('git:unsubscribe', (_e, tabId: string) => git.unsubscribe(tabId))
-  ipcMain.handle('git:refresh', (_e, tabId: string) => git.refresh(tabId))
-  ipcMain.handle('git:fileDiff', (_e, cwd: string, filePath: string) => git.fileDiff(cwd, filePath))
+  handle('git:subscribe', (_e, tabId: string, cwd: string) => git.subscribe(tabId, cwd))
+  handle('git:unsubscribe', (_e, tabId: string) => git.unsubscribe(tabId))
+  handle('git:refresh', (_e, tabId: string) => git.refresh(tabId))
+  handle('git:fileDiff', (_e, cwd: string, filePath: string) => git.fileDiff(cwd, filePath))
 
   // --- superprompt ---
-  ipcMain.handle('superprompt:generate', (_e, req: SuperpromptRequest) => {
+  handle('superprompt:generate', (_e, req: SuperpromptRequest) => {
     void superprompt.generate(req)
   })
-  ipcMain.handle('superprompt:cancel', (_e, requestId: string) => superprompt.cancel(requestId))
+  handle('superprompt:cancel', (_e, requestId: string) => superprompt.cancel(requestId))
 
   // --- history ---
-  ipcMain.handle('history:list', (_e, cwd: string) => listSessions(cwd))
-  ipcMain.handle('history:search', (_e, cwd: string, q: string) => searchSessions(cwd, q))
-  ipcMain.handle('history:listAll', (_e, limit?: number) => listAllSessions(limit))
-  ipcMain.handle('history:transcript', (_e, cwd: string, sessionId: string) =>
+  handle('history:list', (_e, cwd: string) => listSessions(cwd))
+  handle('history:search', (_e, cwd: string, q: string) => searchSessions(cwd, q))
+  handle('history:listAll', (_e, limit?: number) => listAllSessions(limit))
+  handle('history:transcript', (_e, cwd: string, sessionId: string) =>
     readTranscript(cwd, sessionId)
   )
 
   // --- settings ---
-  ipcMain.handle('settings:get', () => settings.getPublic())
-  ipcMain.handle('settings:update', (_e, partial: Partial<AppSettings>) => settings.update(partial))
-  ipcMain.handle('settings:setApiKey', (_e, key: string | null) => settings.setApiKey(key))
+  handle('settings:get', () => settings.getPublic())
+  handle('settings:update', (_e, partial: Partial<AppSettings>) => settings.update(partial))
+  handle('settings:setApiKey', (_e, key: string | null) => settings.setApiKey(key))
 
   // --- costs ---
-  ipcMain.handle('costs:list', () => costs.list())
-  ipcMain.handle('costs:usageWindow', (_e, hours: number) => costs.usageWindow(hours))
+  handle('costs:list', () => costs.list())
+  handle('costs:usageWindow', (_e, hours: number) => costs.usageWindow(hours))
 
   // --- misc ---
-  ipcMain.handle('dialog:pickFolder', async () => {
+  handle('dialog:pickFolder', async () => {
     const win = getWindow()
     if (!win) return null
     const res = await dialog.showOpenDialog(win, { properties: ['openDirectory'] })
     return res.canceled || res.filePaths.length === 0 ? null : res.filePaths[0]
   })
-  ipcMain.handle('shell:openExternal', (_e, url: string) => {
+  handle('shell:openExternal', (_e, url: string) => {
     if (url.startsWith('https://') || url.startsWith('http://')) void shell.openExternal(url)
   })
 }

@@ -1,4 +1,16 @@
+import { useEffect, useState } from 'react'
 import { ShaderGradientCanvas, ShaderGradient } from '@shadergradient/react'
+
+/** True while the window is actually on screen (not minimized / backgrounded). */
+function useDocumentVisible(): boolean {
+  const [visible, setVisible] = useState(() => !document.hidden)
+  useEffect(() => {
+    const onChange = (): void => setVisible(!document.hidden)
+    document.addEventListener('visibilitychange', onChange)
+    return () => document.removeEventListener('visibilitychange', onChange)
+  }, [])
+  return visible
+}
 
 type SGProps = React.ComponentProps<typeof ShaderGradient>
 
@@ -59,23 +71,27 @@ export default function ShaderBackground({
   preset: BgPreset
   opacity?: number
 }): React.JSX.Element | null {
+  const visible = useDocumentVisible()
   if (preset === 'off') return null
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {/* blurred gradient — soft low-contrast wash (no hard blob edges) */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: '-12%',
-          opacity,
-          filter: 'blur(36px) saturate(0.9)',
-          transform: 'scale(1.15)'
-        }}
-      >
-        <ShaderGradientCanvas style={{ width: '100%', height: '100%' }} pointerEvents="none" pixelDensity={1.5}>
-          <ShaderGradient {...PRESETS[preset]} />
-        </ShaderGradientCanvas>
-      </div>
+      {/* blurred gradient — soft low-contrast wash (no hard blob edges).
+          Unmounted while the window is hidden so the WebGL loop stops. */}
+      {visible && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: '-12%',
+            opacity,
+            filter: 'blur(36px) saturate(0.9)',
+            transform: 'scale(1.15)'
+          }}
+        >
+          <ShaderGradientCanvas style={{ width: '100%', height: '100%' }} pointerEvents="none" pixelDensity={1.5}>
+            <ShaderGradient {...PRESETS[preset]} />
+          </ShaderGradientCanvas>
+        </div>
+      )}
 
       {/* crisp fine film grain (independent of the blur) */}
       <div className="absolute inset-0" style={{ backgroundImage: GRAIN, opacity: 0.13, mixBlendMode: 'overlay' }} />

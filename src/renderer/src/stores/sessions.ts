@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { supportsUltracode } from '@shared/types'
+import { availableEffortLevels, supportsUltracode } from '@shared/types'
 import type {
   EffortLevel,
   PermissionDecision,
@@ -237,15 +237,23 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
       const tab = get().tabs.find((t) => t.id === tabId)
       if (!tab || tab.model === model) return Promise.resolve()
       const dropUltra = !supportsUltracode(model)
+      // Clamp effort to what the new model accepts (e.g. xhigh/max → high on a
+      // model that rejects them) so we never send an unsupported effort level.
+      const levels = availableEffortLevels(model)
+      const effort = levels.some((l) => l.id === tab.effort)
+        ? tab.effort
+        : levels[levels.length - 1].id
       set((st) => ({
         tabs: patchTab(st.tabs, tabId, (t) => ({
           ...t,
           model,
+          effort,
           ultracode: dropUltra ? false : t.ultracode
         }))
       }))
       if (tab.sdkSessionId) {
         void window.api.setModel(tabId, model)
+        if (effort !== tab.effort) void window.api.setEffort(tabId, effort)
         if (dropUltra && tab.ultracode) void window.api.setUltracode(tabId, false)
       }
       return Promise.resolve()

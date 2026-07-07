@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { EFFORT_LEVELS, supportsUltracode, type EffortLevel } from '@shared/types'
+import { availableEffortLevels, supportsUltracode, type EffortLevel } from '@shared/types'
 import Icon from './Icon'
 import { useSessionsStore } from '@/stores/sessions'
 import type { TabState } from '@/lib/chat'
@@ -21,9 +21,10 @@ export default function EffortControl({ tab }: { tab: TabState }): React.JSX.Ele
   const [open, setOpen] = useState(false)
 
   const ultraOk = supportsUltracode(tab.model)
+  const levels = availableEffortLevels(tab.model)
   const stops: Stop[] = ultraOk
-    ? [...EFFORT_LEVELS, { id: 'ultracode', label: 'Ultracode' }]
-    : EFFORT_LEVELS.map((e) => ({ id: e.id, label: e.label }))
+    ? [...levels, { id: 'ultracode', label: 'Ultracode' }]
+    : levels.map((e) => ({ id: e.id, label: e.label }))
 
   const idx = tab.ultracode ? stops.length - 1 : Math.max(0, stops.findIndex((s) => s.id === tab.effort))
   const current = stops[idx]

@@ -227,7 +227,8 @@ export const MODEL_FAMILIES: ModelFamilyDef[] = [
     label: 'Sonnet',
     note: 'fast and balanced',
     versions: [
-      { id: 'claude-sonnet-4-6', label: 'Sonnet 4.6' },
+      { id: 'claude-sonnet-5', label: 'Sonnet 5' },
+      { id: 'claude-sonnet-4-6', label: 'Sonnet 4.6', legacy: true },
       { id: 'claude-sonnet-4-5', label: 'Sonnet 4.5', legacy: true },
       { id: 'claude-sonnet-4-0', label: 'Sonnet 4', legacy: true }
     ]
@@ -260,10 +261,40 @@ export function familyOf(modelId: string): ModelFamily | undefined {
 }
 
 /** Models that support the `xhigh` effort level (required for ultracode). */
-export const XHIGH_CAPABLE = new Set(['claude-fable-5', 'claude-opus-4-8', 'claude-opus-4-7'])
+export const XHIGH_CAPABLE = new Set([
+  'claude-fable-5',
+  'claude-mythos-5',
+  'claude-opus-4-8',
+  'claude-opus-4-7',
+  'claude-sonnet-5'
+])
 
 export function supportsXhigh(modelId: string): boolean {
   return XHIGH_CAPABLE.has(modelId)
+}
+
+/** Models that accept the `max` effort level — Fable 5, Opus 4.6+, Sonnet 5/4.6. */
+export const MAX_CAPABLE = new Set([
+  'claude-fable-5',
+  'claude-mythos-5',
+  'claude-opus-4-8',
+  'claude-opus-4-7',
+  'claude-opus-4-6',
+  'claude-sonnet-5',
+  'claude-sonnet-4-6'
+])
+
+export function supportsMax(modelId: string): boolean {
+  return MAX_CAPABLE.has(modelId)
+}
+
+/** Effort levels a model actually accepts (gates `xhigh`/`max` per capability). */
+export function availableEffortLevels(modelId: string): { id: EffortLevel; label: string }[] {
+  return EFFORT_LEVELS.filter((e) => {
+    if (e.id === 'xhigh') return supportsXhigh(modelId)
+    if (e.id === 'max') return supportsMax(modelId)
+    return true
+  })
 }
 
 /** Ultracode (xhigh + dynamic workflows) needs an xhigh-capable model — Opus 4.7/4.8, Fable 5. */

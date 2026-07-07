@@ -109,6 +109,9 @@ export function readTranscript(
   sessionId: string,
   maxMessages = 800
 ): { type: string; message: Record<string, unknown> }[] {
+  // Session ids are UUID-like; reject anything else so it can't traverse out of
+  // the project history dir (e.g. "../../secret").
+  if (!/^[a-zA-Z0-9-]+$/.test(sessionId)) return []
   const file = join(projectHistoryDir(cwd), `${sessionId}.jsonl`)
   if (!existsSync(file)) return []
   let content = ''

@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto'
-import { readFileSync, existsSync } from 'fs'
+import { readFile } from 'fs/promises'
 import {
   query,
   type Options,
@@ -43,27 +43,34 @@ function permissionKey(toolName: string, input: Record<string, unknown>): string
 }
 
 /** Precompute old/new file contents so the renderer can show a Monaco diff. */
-function computeDiff(toolName: string, input: Record<string, unknown>): FileDiffPayload | undefined {
+async function computeDiff(
+  toolName: string,
+  input: Record<string, unknown>
+): Promise<FileDiffPayload | undefined> {
   try {
     const filePath = typeof input.file_path === 'string' ? input.file_path : undefined
     if (!filePath) return undefined
-    const oldContent = existsSync(filePath) ? readFileSync(filePath, 'utf8') : ''
+    // Async read so a large target file never blocks the main event loop.
+    const oldContent = await readFile(filePath, 'utf8').catch(() => '')
     if (toolName === 'Write' && typeof input.content === 'string') {
       return { filePath, oldContent, newContent: input.content }
     }
     if (toolName === 'Edit' && typeof input.old_string === 'string' && typeof input.new_string === 'string') {
+      const newStr = input.new_string
       const newContent = input.replace_all
-        ? oldContent.split(input.old_string).join(input.new_string)
-        : oldContent.replace(input.old_string, input.new_string)
+        ? oldContent.split(input.old_string).join(newStr)
+        : // Function replacer so `$&`, `$1`, `$$` in new_string stay literal.
+          oldContent.replace(input.old_string, () => newStr)
       return { filePath, oldContent, newContent }
     }
     if (toolName === 'MultiEdit' && Array.isArray(input.edits)) {
       let newContent = oldContent
       for (const e of input.edits as { old_string?: string; new_string?: string; replace_all?: boolean }[]) {
         if (typeof e.old_string !== 'string' || typeof e.new_string !== 'string') continue
+        const ns = e.new_string
         newContent = e.replace_all
-          ? newContent.split(e.old_string).join(e.new_string)
-          : newContent.replace(e.old_string, e.new_string)
+          ? newContent.split(e.old_string).join(ns)
+          : newContent.replace(e.old_string, () => ns)
       }
       return { filePath, oldContent, newContent }
     }
@@ -168,7 +175,7 @@ class AgentSession {
       input,
       title: extra.title,
       displayName: extra.displayName,
-      diff: EDIT_TOOLS.has(toolName) ? computeDiff(toolName, input) : undefined
+      diff: EDIT_TOOLS.has(toolName) ? await computeDiff(toolName, input) : undefined
     }
     this.send('permission:request', payload)
 
