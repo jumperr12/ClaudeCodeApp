@@ -14,6 +14,16 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()],
     resolve: {
       alias: { '@shared': resolve('src/shared') }
+    },
+    build: {
+      rollupOptions: {
+        // Emit CommonJS (.cjs) so the preload can run in a sandboxed renderer —
+        // sandboxed preloads must be CJS, not ESM. Enables sandbox:true in index.ts.
+        output: {
+          format: 'cjs',
+          entryFileNames: '[name].cjs'
+        }
+      }
     }
   },
   renderer: {
