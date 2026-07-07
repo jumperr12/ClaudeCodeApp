@@ -271,6 +271,24 @@ export function supportsUltracode(modelId: string): boolean {
   return supportsXhigh(modelId)
 }
 
+/**
+ * Models that accept `thinking: {type: "adaptive"}` (Claude 4.6+ family).
+ * Pre-4.6 models reject it with a 400 — for those we omit the thinking param.
+ */
+export const ADAPTIVE_THINKING_CAPABLE = new Set([
+  'claude-fable-5',
+  'claude-mythos-5',
+  'claude-opus-4-8',
+  'claude-opus-4-7',
+  'claude-opus-4-6',
+  'claude-sonnet-5',
+  'claude-sonnet-4-6'
+])
+
+export function supportsAdaptiveThinking(modelId: string): boolean {
+  return ADAPTIVE_THINKING_CAPABLE.has(modelId)
+}
+
 export function modelLabel(modelId: string): string {
   for (const f of MODEL_FAMILIES) {
     const v = f.versions.find((x) => x.id === modelId)

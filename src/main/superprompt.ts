@@ -3,7 +3,7 @@ import { query } from '@anthropic-ai/claude-agent-sdk'
 import { existsSync, readFileSync } from 'fs'
 import { join, basename } from 'path'
 import type { BrowserWindow } from 'electron'
-import type { SuperpromptRequest } from '@shared/types'
+import { supportsAdaptiveThinking, type SuperpromptRequest } from '@shared/types'
 import type { SettingsService } from './settings'
 
 function metaPrompt(language: 'pl' | 'en', detail: 'concise' | 'detailed'): string {
@@ -103,11 +103,13 @@ export class SuperpromptService {
     abort: AbortController
   ): Promise<void> {
     const client = new Anthropic({ apiKey })
+    const model = this.settings.getPublic().superpromptModel
     const stream = client.messages.stream(
       {
-        model: this.settings.getPublic().superpromptModel,
+        model,
         max_tokens: 4096,
-        thinking: { type: 'adaptive' },
+        // Adaptive thinking only exists on Claude 4.6+; pre-4.6 models 400 on it.
+        ...(supportsAdaptiveThinking(model) ? { thinking: { type: 'adaptive' as const } } : {}),
         system,
         messages: [{ role: 'user', content: userContent }]
       },
