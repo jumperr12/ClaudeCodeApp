@@ -25,6 +25,7 @@ export default function StatusBar({ tab }: { tab: TabState }): React.JSX.Element
         onChange={(id) => void setModel(tab.id, id)}
         label={modelLabel(tab.model)}
         title="Agent model (for this tab)"
+        className="-translate-y-[2px]"
       >
         {MODEL_FAMILIES.map((fam) => (
           <optgroup key={fam.family} label={fam.label} className="bg-panel text-fg">
@@ -47,6 +48,7 @@ export default function StatusBar({ tab }: { tab: TabState }): React.JSX.Element
         onChange={(m) => void setPermissionMode(tab.id, m as PermissionMode)}
         label={<span className="text-muted">{modeLabel}</span>}
         title="Permission mode (Shift+Tab)"
+        className="-translate-y-[2px]"
       >
         {PERMISSION_MODES.map((m) => (
           <option key={m.id} value={m.id} className="bg-panel text-fg">
