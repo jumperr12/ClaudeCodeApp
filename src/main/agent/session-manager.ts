@@ -22,10 +22,22 @@ import type { CostService } from '../costs'
 
 const EDIT_TOOLS = new Set(['Edit', 'Write', 'MultiEdit'])
 
+/**
+ * Scope key for "Allow always". Deliberately narrow so one approval can never
+ * green-light a broader class of actions than the user actually saw:
+ *  - Bash: the exact command string — approving `npm test` will NOT auto-approve
+ *    `npm publish` (they hash to different keys); a re-prompt happens for anything
+ *    that isn't byte-for-byte identical.
+ *  - Edit/Write/MultiEdit: scoped to the specific target file — approving a write
+ *    to one file does not authorize writes anywhere else.
+ *  - Everything else: the tool name (these tools carry their own narrow surface).
+ */
 function permissionKey(toolName: string, input: Record<string, unknown>): string {
   if (toolName === 'Bash' && typeof input.command === 'string') {
-    const first = input.command.trim().split(/\s+/)[0] ?? ''
-    return `Bash:${first}`
+    return `Bash:${input.command.trim()}`
+  }
+  if (EDIT_TOOLS.has(toolName) && typeof input.file_path === 'string') {
+    return `${toolName}:${input.file_path}`
   }
   return toolName
 }
