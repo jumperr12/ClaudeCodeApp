@@ -168,10 +168,10 @@ export default function PromptInput({ tab }: { tab: TabState }): React.JSX.Eleme
         </button>
         <button
           className="hover:text-fg flex items-center gap-1"
-          title="Attach an image (or paste / drag & drop)"
+          title="Add attachment — image (or paste / drag & drop)"
           onClick={() => fileRef.current?.click()}
         >
-          <Icon name="image" size={12} /> Image
+          <Icon name="image" size={12} /> Attach
         </button>
         <span>{modelLabel(tab.model)}</span>
         <span className="ml-auto">Enter to send · Shift+Enter newline · Esc interrupt · Shift+Tab mode</span>
