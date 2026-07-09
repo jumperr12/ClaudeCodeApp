@@ -10,6 +10,7 @@ import type {
   PermissionMode,
   PermissionRequestPayload,
   PlanUsage,
+  PromptFileRef,
   PromptImage,
   SessionEventEnvelope,
   SuperpromptChunk,
@@ -22,7 +23,14 @@ export type Unsubscribe = () => void
 /** The API exposed to the renderer on window.api (implemented in src/preload). */
 export interface RendererApi {
   createSession(tabId: string, opts: CreateSessionOptions): Promise<void>
-  sendMessage(tabId: string, text: string, images?: PromptImage[]): Promise<void>
+  sendMessage(
+    tabId: string,
+    text: string,
+    images?: PromptImage[],
+    files?: PromptFileRef[]
+  ): Promise<void>
+  /** Absolute filesystem path for a dropped/picked File (Electron webUtils). */
+  getPathForFile(file: File): string
   interrupt(tabId: string): Promise<void>
   closeSession(tabId: string): Promise<void>
   setPermissionMode(tabId: string, mode: PermissionMode): Promise<void>

@@ -1,8 +1,8 @@
 // Chat item model + pure reducer translating SDK messages into UI items.
-import type { EffortLevel, PermissionMode, PromptImage } from '@shared/types'
+import type { EffortLevel, PermissionMode, PromptFileRef, PromptImage } from '@shared/types'
 
 export type ChatItem =
-  | { kind: 'user'; id: string; text: string; images?: PromptImage[] }
+  | { kind: 'user'; id: string; text: string; images?: PromptImage[]; files?: PromptFileRef[] }
   | { kind: 'text'; id: string; text: string; streaming: boolean }
   | {
       kind: 'thinking'

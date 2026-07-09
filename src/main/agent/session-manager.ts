@@ -15,6 +15,7 @@ import type {
   PermissionMode,
   PermissionRequestPayload,
   PlanUsage,
+  PromptFileRef,
   PromptImage
 } from '@shared/types'
 import { PermissionBroker } from './permissions'
@@ -203,9 +204,16 @@ class AgentSession {
     return { behavior: 'allow', updatedInput: input }
   }
 
-  sendUserMessage(text: string, images: PromptImage[] = []): void {
+  sendUserMessage(text: string, images: PromptImage[] = [], files: PromptFileRef[] = []): void {
+    // Non-image files are handed to Claude by absolute path — it reads them with
+    // its own tools (Read handles pdf/txt/md/images/notebooks; Bash unzips, etc.).
+    let effectiveText = text
+    if (files.length > 0) {
+      const list = files.map((f) => `- ${f.path}`).join('\n')
+      effectiveText = `${text}${text ? '\n\n' : ''}Attached files (on disk — read them as needed):\n${list}`
+    }
     // With images, content becomes an API-style block array (images first, then
-    // text); plain text stays a bare string.
+    // text); otherwise plain text stays a bare string.
     const content =
       images.length > 0
         ? [
@@ -213,9 +221,9 @@ class AgentSession {
               type: 'image' as const,
               source: { type: 'base64' as const, media_type: img.mediaType, data: img.data }
             })),
-            ...(text ? [{ type: 'text' as const, text }] : [])
+            ...(effectiveText ? [{ type: 'text' as const, text: effectiveText }] : [])
           ]
-        : text
+        : effectiveText
     this.pendingInput.push({
       type: 'user',
       message: { role: 'user', content },
@@ -337,8 +345,8 @@ export class SessionManager {
     session.start()
   }
 
-  send(tabId: string, text: string, images?: PromptImage[]): void {
-    this.sessions.get(tabId)?.sendUserMessage(text, images)
+  send(tabId: string, text: string, images?: PromptImage[], files?: PromptFileRef[]): void {
+    this.sessions.get(tabId)?.sendUserMessage(text, images, files)
   }
 
   async interrupt(tabId: string): Promise<void> {

@@ -13,6 +13,15 @@ export interface PromptImage {
   name?: string
 }
 
+/**
+ * A non-image file attached to a prompt (PDF, txt, md, zip, code, …). Referenced
+ * by absolute path so Claude reads it from disk with its own tools (Read/Bash).
+ */
+export interface PromptFileRef {
+  path: string
+  name: string
+}
+
 export const EFFORT_LEVELS: { id: EffortLevel; label: string }[] = [
   { id: 'low', label: 'low' },
   { id: 'medium', label: 'medium' },

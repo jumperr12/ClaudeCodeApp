@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { PERMISSION_MODES, modelLabel, type PromptImage } from '@shared/types'
+import { PERMISSION_MODES, modelLabel, type PromptFileRef, type PromptImage } from '@shared/types'
 import { useSessionsStore } from '@/stores/sessions'
 import { useUiStore } from '@/stores/ui'
 import Icon from '../Icon'
@@ -28,6 +28,7 @@ function fileToImage(file: File): Promise<PromptImage | null> {
 export default function PromptInput({ tab }: { tab: TabState }): React.JSX.Element {
   const [value, setValue] = useState('')
   const [images, setImages] = useState<PromptImage[]>([])
+  const [files, setFiles] = useState<PromptFileRef[]>([])
   const [dragging, setDragging] = useState(false)
   const ref = useRef<HTMLTextAreaElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -56,19 +57,32 @@ export default function PromptInput({ tab }: { tab: TabState }): React.JSX.Eleme
     el.style.height = Math.min(el.scrollHeight, 220) + 'px'
   }, [value])
 
-  const addFiles = async (files: Iterable<File>): Promise<void> => {
-    const results = await Promise.all(Array.from(files).map(fileToImage))
-    const ok = results.filter((x): x is PromptImage => x !== null)
-    if (ok.length) setImages((prev) => [...prev, ...ok])
+  const addFiles = async (incoming: Iterable<File>): Promise<void> => {
+    const newImages: PromptImage[] = []
+    const newFiles: PromptFileRef[] = []
+    for (const f of incoming) {
+      if (ACCEPTED.includes(f.type)) {
+        const img = await fileToImage(f)
+        if (img) newImages.push(img)
+      } else {
+        // Non-image: hand it to Claude by absolute path (read from disk via tools).
+        const path = window.api.getPathForFile(f)
+        if (path) newFiles.push({ path, name: f.name })
+      }
+    }
+    if (newImages.length) setImages((prev) => [...prev, ...newImages])
+    if (newFiles.length) setFiles((prev) => [...prev, ...newFiles])
   }
 
   const submit = (): void => {
     const text = value
-    if (!text.trim() && images.length === 0) return
-    const toSend = images
+    if (!text.trim() && images.length === 0 && files.length === 0) return
+    const imgs = images
+    const fls = files
     setValue('')
     setImages([])
-    void sendPrompt(tab.id, text, toSend)
+    setFiles([])
+    void sendPrompt(tab.id, text, imgs, fls)
   }
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
@@ -85,18 +99,18 @@ export default function PromptInput({ tab }: { tab: TabState }): React.JSX.Eleme
   }
 
   const onPaste = (e: React.ClipboardEvent<HTMLTextAreaElement>): void => {
-    const imgs = Array.from(e.clipboardData.files).filter((f) => f.type.startsWith('image/'))
-    if (imgs.length) {
+    const dropped = Array.from(e.clipboardData.files)
+    if (dropped.length) {
       e.preventDefault()
-      void addFiles(imgs)
+      void addFiles(dropped)
     }
   }
 
   const onDrop = (e: React.DragEvent): void => {
-    const imgs = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'))
-    if (imgs.length) {
+    const dropped = Array.from(e.dataTransfer.files)
+    if (dropped.length) {
       e.preventDefault()
-      void addFiles(imgs)
+      void addFiles(dropped)
     }
     setDragging(false)
   }
@@ -118,10 +132,10 @@ export default function PromptInput({ tab }: { tab: TabState }): React.JSX.Eleme
       }}
       onDrop={onDrop}
     >
-      {images.length > 0 && (
+      {(images.length > 0 || files.length > 0) && (
         <div className="flex flex-wrap gap-2 mb-2">
           {images.map((img, i) => (
-            <div key={i} className="relative">
+            <div key={`img${i}`} className="relative">
               <img
                 src={`data:${img.mediaType};base64,${img.data}`}
                 alt={img.name ?? 'attachment'}
@@ -129,6 +143,23 @@ export default function PromptInput({ tab }: { tab: TabState }): React.JSX.Eleme
               />
               <button
                 onClick={() => setImages((prev) => prev.filter((_, j) => j !== i))}
+                className="absolute -top-1.5 -right-1.5 w-4 h-4 grid place-items-center rounded-full bg-panel2 border border-border text-dim hover:text-bad hover:border-bad"
+                title="Remove"
+              >
+                <Icon name="x" size={10} />
+              </button>
+            </div>
+          ))}
+          {files.map((f, i) => (
+            <div
+              key={`file${i}`}
+              className="relative flex items-center gap-1.5 h-14 max-w-[220px] rounded-md border border-border bg-panel2 pl-2 pr-3"
+              title={f.path}
+            >
+              <Icon name="file" size={16} className="shrink-0 text-muted" />
+              <span className="truncate text-[12px] text-fg">{f.name}</span>
+              <button
+                onClick={() => setFiles((prev) => prev.filter((_, j) => j !== i))}
                 className="absolute -top-1.5 -right-1.5 w-4 h-4 grid place-items-center rounded-full bg-panel2 border border-border text-dim hover:text-bad hover:border-bad"
                 title="Remove"
               >
@@ -152,7 +183,7 @@ export default function PromptInput({ tab }: { tab: TabState }): React.JSX.Eleme
           placeholder={
             working
               ? 'Claude is working… (Esc to interrupt)'
-              : 'Message Claude… (paste, drop, or attach an image)'
+              : 'Message Claude… (paste, drop, or attach files)'
           }
           className="flex-1 bg-transparent resize-none outline-none text-bright placeholder:text-dim pt-1.5 leading-relaxed"
         />
@@ -168,7 +199,7 @@ export default function PromptInput({ tab }: { tab: TabState }): React.JSX.Eleme
         </button>
         <button
           className="hover:text-fg flex items-center gap-1"
-          title="Add attachment — image (or paste / drag & drop)"
+          title="Add attachment — images inline, other files by path (or paste / drag & drop)"
           onClick={() => fileRef.current?.click()}
         >
           <Icon name="image" size={12} /> Attach
@@ -180,7 +211,6 @@ export default function PromptInput({ tab }: { tab: TabState }): React.JSX.Eleme
       <input
         ref={fileRef}
         type="file"
-        accept="image/png,image/jpeg,image/gif,image/webp"
         multiple
         hidden
         onChange={(e) => {

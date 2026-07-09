@@ -5,6 +5,7 @@ import type {
   PermissionDecision,
   PermissionMode,
   PermissionRequestPayload,
+  PromptFileRef,
   PromptImage,
   SessionEventEnvelope
 } from '@shared/types'
@@ -24,7 +25,12 @@ interface SessionsState {
   closeTab: (tabId: string) => void
   setActive: (tabId: string) => void
   openFolder: (tabId: string, cwd: string, resume?: string) => Promise<void>
-  sendPrompt: (tabId: string, text: string, images?: PromptImage[]) => Promise<void>
+  sendPrompt: (
+    tabId: string,
+    text: string,
+    images?: PromptImage[],
+    files?: PromptFileRef[]
+  ) => Promise<void>
   interrupt: (tabId: string) => Promise<void>
   cyclePermissionMode: (tabId: string) => Promise<void>
   setPermissionMode: (tabId: string, mode: PermissionMode) => Promise<void>
@@ -168,19 +174,21 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
       }))
     },
 
-    sendPrompt: async (tabId, raw, images) => {
+    sendPrompt: async (tabId, raw, images, files) => {
       const text = raw.trim()
       const imgs = images ?? []
-      if (!text && imgs.length === 0) return
+      const fls = files ?? []
+      const hasAttach = imgs.length > 0 || fls.length > 0
+      if (!text && !hasAttach) return
       const tab = get().tabs.find((t) => t.id === tabId)
       if (!tab || !tab.cwd) return
 
-      // local slash commands (only when it's a bare text command, no images)
-      if (imgs.length === 0 && text === '/clear') {
+      // local slash commands (only when it's a bare text command, no attachments)
+      if (!hasAttach && text === '/clear') {
         await get().clearChat(tabId)
         return
       }
-      if (imgs.length === 0 && text.startsWith('/model')) {
+      if (!hasAttach && text.startsWith('/model')) {
         const model = text.split(/\s+/)[1]
         if (model) {
           const ok = await window.api.setModel(tabId, model)
@@ -209,11 +217,22 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
           status: 'working',
           items: [
             ...t.items,
-            { kind: 'user', id: nextId(), text, images: imgs.length ? imgs : undefined }
+            {
+              kind: 'user',
+              id: nextId(),
+              text,
+              images: imgs.length ? imgs : undefined,
+              files: fls.length ? fls : undefined
+            }
           ]
         }))
       }))
-      await window.api.sendMessage(tabId, text, imgs.length ? imgs : undefined)
+      await window.api.sendMessage(
+        tabId,
+        text,
+        imgs.length ? imgs : undefined,
+        fls.length ? fls : undefined
+      )
     },
 
     interrupt: async (tabId) => {

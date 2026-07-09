@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
+import { contextBridge, ipcRenderer, webUtils, type IpcRendererEvent } from 'electron'
 import type { RendererApi } from '@shared/api'
 import type {
   AppSettings,
@@ -12,6 +12,7 @@ import type {
   PermissionMode,
   PermissionRequestPayload,
   PlanUsage,
+  PromptFileRef,
   PromptImage,
   SessionEventEnvelope,
   SuperpromptChunk,
@@ -31,8 +32,13 @@ const api: RendererApi = {
   // sessions
   createSession: (tabId: string, opts: CreateSessionOptions): Promise<void> =>
     ipcRenderer.invoke('session:create', tabId, opts),
-  sendMessage: (tabId: string, text: string, images?: PromptImage[]): Promise<void> =>
-    ipcRenderer.invoke('session:send', tabId, text, images),
+  sendMessage: (
+    tabId: string,
+    text: string,
+    images?: PromptImage[],
+    files?: PromptFileRef[]
+  ): Promise<void> => ipcRenderer.invoke('session:send', tabId, text, images, files),
+  getPathForFile: (file: File): string => webUtils.getPathForFile(file),
   interrupt: (tabId: string): Promise<void> => ipcRenderer.invoke('session:interrupt', tabId),
   closeSession: (tabId: string): Promise<void> => ipcRenderer.invoke('session:close', tabId),
   setPermissionMode: (tabId: string, mode: PermissionMode): Promise<void> =>

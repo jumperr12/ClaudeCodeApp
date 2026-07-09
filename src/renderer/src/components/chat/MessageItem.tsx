@@ -36,6 +36,20 @@ function MessageItemInner({ item }: { item: ChatItem }): React.JSX.Element | nul
                 ))}
               </div>
             )}
+            {item.files && item.files.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-1.5">
+                {item.files.map((f, i) => (
+                  <span
+                    key={i}
+                    className="flex items-center gap-1 max-w-[240px] rounded border border-border bg-panel2 px-1.5 py-0.5 text-[11px] text-fg"
+                    title={f.path}
+                  >
+                    <Icon name="file" size={12} className="shrink-0 text-muted" />
+                    <span className="truncate">{f.name}</span>
+                  </span>
+                ))}
+              </div>
+            )}
             {item.text && <div className="whitespace-pre-wrap text-bright">{item.text}</div>}
           </div>
         </div>
