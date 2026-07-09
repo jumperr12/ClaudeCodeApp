@@ -5,6 +5,7 @@ import type {
   PermissionDecision,
   PermissionMode,
   PermissionRequestPayload,
+  PromptImage,
   SessionEventEnvelope
 } from '@shared/types'
 import { createTab, nextId, reduceSdkMessage, type ChatItem, type TabState } from '@/lib/chat'
@@ -23,7 +24,7 @@ interface SessionsState {
   closeTab: (tabId: string) => void
   setActive: (tabId: string) => void
   openFolder: (tabId: string, cwd: string, resume?: string) => Promise<void>
-  sendPrompt: (tabId: string, text: string) => Promise<void>
+  sendPrompt: (tabId: string, text: string, images?: PromptImage[]) => Promise<void>
   interrupt: (tabId: string) => Promise<void>
   cyclePermissionMode: (tabId: string) => Promise<void>
   setPermissionMode: (tabId: string, mode: PermissionMode) => Promise<void>
@@ -167,18 +168,19 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
       }))
     },
 
-    sendPrompt: async (tabId, raw) => {
+    sendPrompt: async (tabId, raw, images) => {
       const text = raw.trim()
-      if (!text) return
+      const imgs = images ?? []
+      if (!text && imgs.length === 0) return
       const tab = get().tabs.find((t) => t.id === tabId)
       if (!tab || !tab.cwd) return
 
-      // local slash commands
-      if (text === '/clear') {
+      // local slash commands (only when it's a bare text command, no images)
+      if (imgs.length === 0 && text === '/clear') {
         await get().clearChat(tabId)
         return
       }
-      if (text.startsWith('/model')) {
+      if (imgs.length === 0 && text.startsWith('/model')) {
         const model = text.split(/\s+/)[1]
         if (model) {
           const ok = await window.api.setModel(tabId, model)
@@ -205,10 +207,13 @@ export const useSessionsStore = create<SessionsState>((set, get) => {
         tabs: patchTab(st.tabs, tabId, (t) => ({
           ...t,
           status: 'working',
-          items: [...t.items, { kind: 'user', id: nextId(), text }]
+          items: [
+            ...t.items,
+            { kind: 'user', id: nextId(), text, images: imgs.length ? imgs : undefined }
+          ]
         }))
       }))
-      await window.api.sendMessage(tabId, text)
+      await window.api.sendMessage(tabId, text, imgs.length ? imgs : undefined)
     },
 
     interrupt: async (tabId) => {

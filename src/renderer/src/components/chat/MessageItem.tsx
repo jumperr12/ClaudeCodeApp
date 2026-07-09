@@ -23,7 +23,21 @@ function MessageItemInner({ item }: { item: ChatItem }): React.JSX.Element | nul
       return (
         <div className="flex gap-2 my-2">
           <span className="text-accent select-none font-bold">&gt;</span>
-          <div className="whitespace-pre-wrap text-bright">{item.text}</div>
+          <div className="min-w-0">
+            {item.images && item.images.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-1.5">
+                {item.images.map((img, i) => (
+                  <img
+                    key={i}
+                    src={`data:${img.mediaType};base64,${img.data}`}
+                    alt={img.name ?? 'attachment'}
+                    className="h-24 w-auto max-w-[240px] rounded-md border border-border object-cover"
+                  />
+                ))}
+              </div>
+            )}
+            {item.text && <div className="whitespace-pre-wrap text-bright">{item.text}</div>}
+          </div>
         </div>
       )
     case 'text':

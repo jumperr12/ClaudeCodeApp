@@ -14,7 +14,8 @@ import type {
   FileDiffPayload,
   PermissionMode,
   PermissionRequestPayload,
-  PlanUsage
+  PlanUsage,
+  PromptImage
 } from '@shared/types'
 import { PermissionBroker } from './permissions'
 import type { SettingsService } from '../settings'
@@ -202,10 +203,22 @@ class AgentSession {
     return { behavior: 'allow', updatedInput: input }
   }
 
-  sendUserMessage(text: string): void {
+  sendUserMessage(text: string, images: PromptImage[] = []): void {
+    // With images, content becomes an API-style block array (images first, then
+    // text); plain text stays a bare string.
+    const content =
+      images.length > 0
+        ? [
+            ...images.map((img) => ({
+              type: 'image' as const,
+              source: { type: 'base64' as const, media_type: img.mediaType, data: img.data }
+            })),
+            ...(text ? [{ type: 'text' as const, text }] : [])
+          ]
+        : text
     this.pendingInput.push({
       type: 'user',
-      message: { role: 'user', content: text },
+      message: { role: 'user', content },
       parent_tool_use_id: null,
       session_id: ''
     } as unknown as SDKUserMessage)
@@ -324,8 +337,8 @@ export class SessionManager {
     session.start()
   }
 
-  send(tabId: string, text: string): void {
-    this.sessions.get(tabId)?.sendUserMessage(text)
+  send(tabId: string, text: string, images?: PromptImage[]): void {
+    this.sessions.get(tabId)?.sendUserMessage(text, images)
   }
 
   async interrupt(tabId: string): Promise<void> {

@@ -5,6 +5,7 @@ import type {
   EffortLevel,
   PermissionDecision,
   PermissionMode,
+  PromptImage,
   SuperpromptRequest
 } from '@shared/types'
 import { SessionManager } from './agent/session-manager'
@@ -65,7 +66,9 @@ export function registerIpc(services: Services, getWindow: () => BrowserWindow |
     const win = getWindow()
     if (win) sessions.create(win, tabId, opts)
   })
-  handle('session:send', (_e, tabId: string, text: string) => sessions.send(tabId, text))
+  handle('session:send', (_e, tabId: string, text: string, images?: PromptImage[]) =>
+    sessions.send(tabId, text, images)
+  )
   handle('session:interrupt', (_e, tabId: string) => sessions.interrupt(tabId))
   handle('session:close', (_e, tabId: string) => sessions.close(tabId))
   handle('session:setPermissionMode', (_e, tabId: string, mode: PermissionMode) =>

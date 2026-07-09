@@ -10,6 +10,7 @@ import type {
   PermissionMode,
   PermissionRequestPayload,
   PlanUsage,
+  PromptImage,
   SessionEventEnvelope,
   SuperpromptChunk,
   SuperpromptRequest,
@@ -21,7 +22,7 @@ export type Unsubscribe = () => void
 /** The API exposed to the renderer on window.api (implemented in src/preload). */
 export interface RendererApi {
   createSession(tabId: string, opts: CreateSessionOptions): Promise<void>
-  sendMessage(tabId: string, text: string): Promise<void>
+  sendMessage(tabId: string, text: string, images?: PromptImage[]): Promise<void>
   interrupt(tabId: string): Promise<void>
   closeSession(tabId: string): Promise<void>
   setPermissionMode(tabId: string, mode: PermissionMode): Promise<void>

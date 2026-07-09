@@ -5,6 +5,14 @@ export type AuthMode = 'subscription' | 'apiKey'
 export type ModelFamily = 'fable' | 'opus' | 'sonnet' | 'haiku'
 export type EffortLevel = 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 
+/** An image attached to a user prompt. `data` is base64 with no data: URI prefix. */
+export interface PromptImage {
+  /** One of image/png, image/jpeg, image/gif, image/webp. */
+  mediaType: string
+  data: string
+  name?: string
+}
+
 export const EFFORT_LEVELS: { id: EffortLevel; label: string }[] = [
   { id: 'low', label: 'low' },
   { id: 'medium', label: 'medium' },

@@ -12,6 +12,7 @@ import type {
   PermissionMode,
   PermissionRequestPayload,
   PlanUsage,
+  PromptImage,
   SessionEventEnvelope,
   SuperpromptChunk,
   SuperpromptRequest,
@@ -30,8 +31,8 @@ const api: RendererApi = {
   // sessions
   createSession: (tabId: string, opts: CreateSessionOptions): Promise<void> =>
     ipcRenderer.invoke('session:create', tabId, opts),
-  sendMessage: (tabId: string, text: string): Promise<void> =>
-    ipcRenderer.invoke('session:send', tabId, text),
+  sendMessage: (tabId: string, text: string, images?: PromptImage[]): Promise<void> =>
+    ipcRenderer.invoke('session:send', tabId, text, images),
   interrupt: (tabId: string): Promise<void> => ipcRenderer.invoke('session:interrupt', tabId),
   closeSession: (tabId: string): Promise<void> => ipcRenderer.invoke('session:close', tabId),
   setPermissionMode: (tabId: string, mode: PermissionMode): Promise<void> =>
