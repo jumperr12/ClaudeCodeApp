@@ -202,7 +202,7 @@ export default function PromptInput({ tab }: { tab: TabState }): React.JSX.Eleme
           title="Add attachment — images inline, other files by path (or paste / drag & drop)"
           onClick={() => fileRef.current?.click()}
         >
-          <Icon name="image" size={12} /> Attach
+          <Icon name="plus" size={13} /> Attach
         </button>
         <span>{modelLabel(tab.model)}</span>
         <span className="ml-auto">Enter to send · Shift+Enter newline · Esc interrupt · Shift+Tab mode</span>

@@ -25,6 +25,7 @@ export type IconName =
   | 'help'
   | 'image'
   | 'file'
+  | 'plus'
 
 interface Props {
   name: IconName
@@ -157,6 +158,12 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
       <polyline points="14 3 14 8 19 8" />
+    </>
+  ),
+  plus: (
+    <>
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
     </>
   )
 }
