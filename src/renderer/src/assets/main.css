@@ -130,8 +130,8 @@ body {
   }
 }
 
-/* working orb — spinning grainy gradient + pulsing glow behind the LiquidSpark */
-.wo-grad {
+/* working mark — small spinning gradient ring behind the LiquidSpark (status bar) */
+.wm-orb {
   background: conic-gradient(
     from 0deg,
     var(--color-accent),
@@ -139,33 +139,11 @@ body {
     #7c5cff,
     var(--color-accent)
   );
-  filter: blur(6px) saturate(1.15);
-  opacity: 0.75;
-  animation: woSpin 3.4s linear infinite;
-}
-.wo-glow {
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--color-accent) 50%, transparent),
-    transparent 70%
-  );
-  filter: blur(8px);
-  animation: woPulse 1.8s ease-in-out infinite;
+  animation: woSpin 3s linear infinite;
 }
 @keyframes woSpin {
   to {
     transform: rotate(360deg);
-  }
-}
-@keyframes woPulse {
-  0%,
-  100% {
-    opacity: 0.4;
-    transform: scale(0.88);
-  }
-  50% {
-    opacity: 0.75;
-    transform: scale(1.1);
   }
 }
 

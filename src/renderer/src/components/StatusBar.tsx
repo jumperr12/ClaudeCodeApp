@@ -5,6 +5,7 @@ import Icon from './Icon'
 import InlineSelect from './InlineSelect'
 import EffortControl from './EffortControl'
 import UsageMeter from './UsageMeter'
+import WorkingMark from './WorkingMark'
 import { useSessionsStore } from '@/stores/sessions'
 
 export default function StatusBar({ tab }: { tab: TabState }): React.JSX.Element {
@@ -83,10 +84,14 @@ export default function StatusBar({ tab }: { tab: TabState }): React.JSX.Element
           </div>
           <span>{contextPct}%</span>
         </div>
-        <span className={`flex items-center gap-1.5 ${tab.status === 'working' ? 'text-accent' : 'text-dim'}`}>
-          <Icon name={tab.status === 'idle' || tab.status === 'empty' ? 'circle' : 'dot'} size={9} />
-          {tab.status === 'working' ? 'working' : tab.status === 'connecting' ? 'connecting' : 'ready'}
-        </span>
+        {tab.status === 'working' ? (
+          <WorkingMark />
+        ) : (
+          <span className="flex items-center gap-1.5 text-dim">
+            <Icon name="circle" size={9} />
+            {tab.status === 'connecting' ? 'connecting' : 'ready'}
+          </span>
+        )}
       </div>
     </div>
   )
