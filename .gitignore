@@ -6,3 +6,6 @@ dist/
 .env
 .vite/
 .claude/settings.local.json
+
+# electron-builder output
+dist/
